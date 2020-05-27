@@ -248,6 +248,18 @@ def getStudentData(requestData):
     if queryType == 'studentName' and keyWord != '':
         subData0 = list(studentManage.objects.filter(studentName__contains=keyWord).values())
 
+    if queryType == 'classesName' and keyWord != '':
+        # 1.查询此班级的编号
+        classesCode = str(list(classesManage.objects.filter(classesName=keyWord).values())[0]['classesCode'])
+        # 2.利用此编号查询学生绑定班级专业表
+        bindCode = list(studentBindClassesAndProfession.objects.filter(classesCode=classesCode).values())
+        # 3.存储有此班级编号的学号
+        studentCodeList = [str(i['studentCode']) for i in bindCode if str(i['classesCode']) == classesCode]
+        studentData = []
+        for i in studentCodeList:
+            studentData.append(list(studentManage.objects.filter(studentCode=i).values())[0])
+        subData0 = studentData
+
     # 获取所属专业,班级名称，班级届数并合并到学生信息列表中
     userList = []
     for i in subData0:
@@ -265,6 +277,7 @@ def getStudentData(requestData):
         else:
             i.update({'studentLevel': '未绑定', 'toProfession': '未绑定', 'toClasses': '未绑定'})
         userList.append(i)
+
     paginator = Paginator(userList, pageSize)  # 每页显示多少数据
     total = paginator.count  # 总数据量
     data = paginator.page(pageNum).object_list  # 某一页的数据
