@@ -2,7 +2,7 @@
 
 ## 1. 项目开发环境
 - IDE: vscode
-- Django版本: 3.0.2
+- Django版本: 3.0.3
 - Python版本: python3.7.3
 - 数据库     : sqlite3(测试专用)
 - 操作系统   : UOS 20
