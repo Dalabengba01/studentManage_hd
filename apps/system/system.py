@@ -3,20 +3,6 @@ from django.http import JsonResponse
 from .models import teacherData
 
 
-# 用户是否登录
-def isLogin1(username):
-    """
-     公共方法(判断是否登录)登录了才有权限做其他操作
-    :param username: 用户名称
-    :return:
-    """
-    for i in teacherData.objects.filter(user_name=username).values():
-        if i['is_login']:
-            return True
-        else:
-            return False
-
-
 # 系统初始化
 def systemInit(requestData):
     if int(teacherData.objects.count()) <= 0:
@@ -34,15 +20,6 @@ def isSystemInit(requestData):
         return JsonResponse({'ret': 0, 'data': '系统已经初始化！'})
     else:
         return JsonResponse({'ret': 1, 'data': '请补充下列管理员信息作为系统初始化数据'})
-
-
-# 用户是否登录
-def isLogin(requestData):
-    for i in teacherData.objects.filter(user_name=requestData['username']).values():
-        if i['is_login']:
-            return JsonResponse({'ret': 0, 'data': '用户已登录！'})
-        else:
-            return JsonResponse({'ret': 1, 'data': '用户未登录！'})
 
 
 # 用户登录
@@ -73,8 +50,8 @@ def userModifyPass(requestData):
     username = requestData['username']
     oldPassword = requestData['oldPassword']
     password = requestData['password']
+    time.sleep(1.5)
     for i in teacherData.objects.values():
-        time.sleep(1.5)
         if i['user_name'] == username and i['user_pass'] == oldPassword:
             teacherData.objects.filter(user_name=username).update(user_pass=password)
             return JsonResponse({'ret': 0, 'data': '密码修改成功,请重新登录！'})
@@ -86,7 +63,7 @@ def userModifyPass(requestData):
 def userModifyAccount(requestData):
     username = requestData['username']
     newusername = requestData['newusername']
-    # return JsonResponse({'ret': 1, 'data': '原始账号名称错误！'})
+    time.sleep(1.5)
     for i in teacherData.objects.filter().values():
         if i['user_name'] == username:
             teacherData.objects.filter(user_name=username).update(user_name=newusername)
