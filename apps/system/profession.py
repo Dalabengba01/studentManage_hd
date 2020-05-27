@@ -13,7 +13,14 @@ def addProfession(requestData):
     if professionManage.objects.filter(professionName=requestData['professionName']).values():
         return JsonResponse({'ret': 1, 'data': '已有相同名称专业,请重命名！'})
     else:
-        if professionManage.objects.create(professionName=requestData['professionName']):
+        index = 1000
+        # 正序查询
+        dataList = list(professionManage.objects.values().order_by('professionCode'))
+        if len(dataList) <= 0:
+            index = 1000
+        else:
+            index = int(dataList[-1]['professionCode']) + 1
+        if professionManage.objects.create(professionCode=index, professionName=requestData['professionName']):
             return JsonResponse({'ret': 0, 'data': '添加专业成功！'})
         else:
             return JsonResponse({'ret': 1, 'data': '添加专业失败,请稍后重试！'})

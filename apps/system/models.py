@@ -20,7 +20,7 @@ class professionManage(models.Model):
         verbose_name = '专业管理相关数据'
         verbose_name_plural = verbose_name
 
-    professionCode = models.AutoField('专业编码', primary_key=True)
+    professionCode = models.IntegerField('专业编码', primary_key=True)
     professionName = models.CharField('专业名称', max_length=21)
     addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
 
@@ -32,7 +32,7 @@ class classesManage(models.Model):
         verbose_name = '班级管理相关数据'
         verbose_name_plural = verbose_name
 
-    classesCode = models.AutoField('班级编号', primary_key=True)
+    classesCode = models.IntegerField('班级编号', primary_key=True)
     classesLevel = models.CharField('班级届数', max_length=21)
     classesName = models.CharField('班级名称', max_length=21)
     addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")

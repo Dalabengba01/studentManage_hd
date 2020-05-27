@@ -15,7 +15,14 @@ def addClasses(requestData):
     if classesManage.objects.filter(classesName=classesName).values():
         return JsonResponse({'ret': 1, 'data': '已有相同名称班级,请重命名！'})
     else:
-        if classesManage.objects.create(classesName=classesName, classesLevel=requestData['classesLevel']):
+        index = 1000
+        # 正序查询
+        dataList = list(classesManage.objects.values().order_by('classesCode'))
+        if len(dataList) <= 0:
+            index = 1000
+        else:
+            index = int(dataList[-1]['classesCode']) + 1
+        if classesManage.objects.create(classesCode=index, classesName=classesName, classesLevel=requestData['classesLevel']):
             classesCode = list(classesManage.objects.filter(classesName=classesName).values())[0]['classesCode']
             if classesBindProfession.objects.filter(classesCode=classesCode).count() > 0:
                 return JsonResponse({'ret': 1, 'data': '已经绑定专业,无需重复绑定!'})
