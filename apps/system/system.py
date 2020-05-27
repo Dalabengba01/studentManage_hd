@@ -26,13 +26,12 @@ def isSystemInit(requestData):
 def userLogin(requestData):
     username = requestData['username']
     password = requestData['password']
-    userList = list(teacherData.objects.values())
-    for i in userList:
-        if (i['user_name'] == username) and (i['user_pass'] == password):
-            teacherData.objects.filter(user_name=username).update(is_login=True)
-            return JsonResponse({'ret': 0, 'data': '账号登录系统成功！'})
-        else:
-            return JsonResponse({'ret': 1, 'data': '账号或密码错误！'})
+    userList = list(teacherData.objects.filter(user_name=username, user_pass=password).values())[0]
+    if (userList['user_name'] == username) and (userList['user_pass'] == password):
+        teacherData.objects.filter(user_name=username).update(is_login=True)
+        return JsonResponse({'ret': 0, 'data': '账号登录系统成功！'})
+    else:
+        return JsonResponse({'ret': 1, 'data': '账号或密码错误！'})
 
 
 # 用户登出
