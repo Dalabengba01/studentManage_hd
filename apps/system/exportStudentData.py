@@ -3,8 +3,7 @@ import os
 from django.http import StreamingHttpResponse, JsonResponse
 from xlwt import *
 
-from .models import studentManage, studentBindClassesAndProfession, professionManage, classesManage, \
-    employmentReturnVisit
+from .models import studentManage, professionManage, classesManage
 
 
 def getexportStudentData(request):
@@ -56,13 +55,13 @@ def getexportStudentData(request):
 
     # 添加回访信息数据
     returnVisit = []
-    for visit in employmentReturnVisit.objects.values():
-        data = {}
-        for student in studentList:
-            if str(visit['studentCode']) == str(student['studentCode']):
-                data.update(visit)
-                data.update(student)
-        returnVisit.append(data)
+    # for visit in employmentReturnVisit.objects.values():
+    #     data = {}
+    #     for student in studentList:
+    #         if str(visit['studentCode']) == str(student['studentCode']):
+    #             data.update(visit)
+    #             data.update(student)
+    #     returnVisit.append(data)
 
     excelData = []
     excelTitle = ''

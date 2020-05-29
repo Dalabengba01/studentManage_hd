@@ -1,7 +1,7 @@
 import json
 from django.http import JsonResponse
 from .models import teacherData
-from . import profession, classes, student, system, dataStatistics, exportStudentData, inputStudentData
+from . import profession, classes, student, enterprise, system, dataStatistics, exportStudentData, inputStudentData
 
 
 # 用户基础功能函数
@@ -110,9 +110,6 @@ def data(request):
                     if useraction == 'getProfessionAndClassesDataCascaderOptions':
                         return student.getProfessionAndClassesDataCascaderOptions(requestData)
 
-                    if useraction == 'bindProfession':
-                        return classes.bindProfession(requestData)
-
                     if useraction == 'addstudent':
                         return student.addstudent(requestData)
 
@@ -122,14 +119,41 @@ def data(request):
                     if useraction == 'editStudent':
                         return student.editStudent(requestData)
 
-                    if useraction == 'returnVisitData':
-                        return student.returnVisitData(requestData)
-
                     if useraction == 'deleteStudent':
                         return student.deleteStudent(requestData)
 
                     if useraction == 'getStudentData':
                         return student.getStudentData(requestData)
+
+                    if useraction == 'addEnterprise':
+                        return enterprise.addEnterprise(requestData)
+
+                    if useraction == 'editEnterprise':
+                        return enterprise.editEnterprise(requestData)
+
+                    if useraction == 'getEnterpriseData':
+                        return enterprise.getEnterpriseData(requestData)
+
+                    if useraction == 'deleteEnterprise':
+                        return enterprise.deleteEnterprise(requestData)
+
+                    if useraction == 'getEnterpriseDataCascaderOptions':
+                        return enterprise.getEnterpriseDataCascaderOptions(requestData)
+
+                    if useraction == 'addPost':
+                        return enterprise.addPost(requestData)
+
+                    if useraction == 'editPost':
+                        return enterprise.editPost(requestData)
+
+                    if useraction == 'deletePost':
+                        return enterprise.deletePost(requestData)
+
+                    if useraction == 'getPostData':
+                        return enterprise.getPostData(requestData)
+
+                    if useraction == 'getPostDataCascaderOptions':
+                        return enterprise.getPostDataCascaderOptions(requestData)
 
                     if useraction == 'getWorkAreaData':
                         return dataStatistics.getWorkAreaData(requestData)

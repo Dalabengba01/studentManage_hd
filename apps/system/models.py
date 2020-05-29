@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class teacherData(models.Model):
     """系统初始化的教师管理账户"""
 
@@ -13,6 +14,39 @@ class teacherData(models.Model):
     add_time = models.DateTimeField(auto_now_add=True, verbose_name="初始化时间")
 
 
+class enterpriseManage(models.Model):
+    """企业管理相关数据"""
+
+    class Meta:
+        verbose_name = '企业管理相关数据'
+        verbose_name_plural = verbose_name
+
+    enterpriseCode = models.IntegerField('企业编号', primary_key=True)
+    enterpriseName = models.CharField('企业名称', max_length=30)
+    enterpriseScale = models.CharField('企业规模', max_length=300)
+    enterpriseContacts = models.CharField('企业联系人', max_length=30)
+    enterprisePhone = models.CharField('企业电话', max_length=11)
+    enterpriseAddress = models.CharField('企业地址', max_length=400)
+    skyEyeScore = models.CharField('天眼查分值', max_length=8)
+    remarks = models.CharField('备注', max_length=400)
+    addTime = models.DateField(auto_now=True, verbose_name="更新日期")
+
+
+class enterprisePost(models.Model):
+    """企业岗位表"""
+
+    class Meta:
+        verbose_name = '企业岗位表'
+        verbose_name_plural = verbose_name
+
+    postCode = models.IntegerField('岗位编号', primary_key=True)
+    postName = models.CharField('岗位名称', max_length=200)
+    recruitCount = models.CharField('招聘人数', max_length=30)
+    postAddress = models.CharField('工作地点', max_length=30)
+    salaryTreatment = models.CharField('工资待遇', max_length=400)
+    addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
+
+
 class professionManage(models.Model):
     """后台--专业管理相关数据"""
 
@@ -20,7 +54,7 @@ class professionManage(models.Model):
         verbose_name = '专业管理相关数据'
         verbose_name_plural = verbose_name
 
-    professionCode = models.IntegerField('专业编码', primary_key=True)
+    professionCode = models.IntegerField('专业编号', primary_key=True)
     professionName = models.CharField('专业名称', max_length=21)
     addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
 
@@ -46,64 +80,56 @@ class studentManage(models.Model):
         verbose_name_plural = verbose_name
 
     studentCode = models.CharField('学生学号', primary_key=True, max_length=30)
-    studentName = models.CharField('学生名称', max_length=21)
+    studentName = models.CharField('学生名称', max_length=30)
     studentSex = models.CharField('学生性别', max_length=10)
     studentPhone = models.CharField('学生电话', max_length=11)
     employmentStatus = models.CharField('就业状态', max_length=21)
-    companyName = models.CharField('单位名称', max_length=30)
-    companyAddress = models.CharField('单位地址', max_length=30)
-    postName = models.CharField('岗位名称', max_length=30)
     studentSalary = models.CharField('实习薪资', max_length=20)
-    companyPhone = models.CharField('实习单位电话', max_length=11)
-    teacherName = models.CharField('指导老师姓名', max_length=30)
-    teacherPhone = models.CharField('指导老师电话', max_length=11)
+    teacherName = models.CharField('直属主管', max_length=30)
+    teacherPhone = models.CharField('主管电话', max_length=11)
     studentStatus = models.CharField('学生状态', max_length=10)
+    # 学生绑定企业岗位
+    postCode = models.CharField('岗位编号', max_length=30)
+    enterpriseCode = models.CharField('企业编号', max_length=30)
+    postDuty = models.CharField('岗位职责', max_length=400)
+    # 学生绑定专业班级
+    professionCode = models.CharField('专业编号', max_length=30)
+    classesCode = models.CharField('班级编号', max_length=30)
     addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
 
 
-class employmentReturnVisit(models.Model):
-    """学生就业状态(每月1更)"""
+class studentPostChange(models.Model):
+    """学生岗位信息变化表"""
 
     class Meta:
-        verbose_name = '学生就业状态'
+        verbose_name = '学生岗位信息变化表'
         verbose_name_plural = verbose_name
 
     statusID = models.IntegerField('就业状态标识', primary_key=True)
     studentCode = models.CharField('学生学号', max_length=30)
-    data1 = models.CharField('1月回访记录', max_length=300, default='本月无变动')
-    data2 = models.CharField('2月回访记录', max_length=300, default='本月无变动')
-    data3 = models.CharField('3月回访记录', max_length=300, default='本月无变动')
-    data4 = models.CharField('4月回访记录', max_length=300, default='本月无变动')
-    data5 = models.CharField('5月回访记录', max_length=300, default='本月无变动')
-    data6 = models.CharField('6月回访记录', max_length=300, default='本月无变动')
-    data7 = models.CharField('7月回访记录', max_length=300, default='本月无变动')
-    data8 = models.CharField('8月回访记录', max_length=300, default='本月无变动')
-    data9 = models.CharField('9月回访记录', max_length=300, default='本月无变动')
-    data10 = models.CharField('10月回访记录', max_length=300, default='本月无变动')
-    data11 = models.CharField('11月回访记录', max_length=300, default='本月无变动')
-    data12 = models.CharField('12月回访记录', max_length=300, default='本月无变动')
-    addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
+    enterpriseCode = models.IntegerField('企业编号')
+    addTime = models.DateField(auto_now=True, verbose_name="记录日期")
 
 
 class classesBindProfession(models.Model):
-    """班级绑定专业"""
+    """班级绑定专业表"""
 
     class Meta:
         verbose_name = '班级绑定专业相关数据'
         verbose_name_plural = verbose_name
 
     classesCode = models.AutoField('班级编号', primary_key=True)
-    professionCode = models.CharField('专业编号', max_length=21)
+    professionCode = models.CharField('专业编号', max_length=30)
     addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
 
 
-class studentBindClassesAndProfession(models.Model):
-    """学生绑定容器(专业和班级)"""
+class postBindentErprise(models.Model):
+    """岗位绑定企业"""
 
     class Meta:
-        verbose_name = '学生绑定容器相关数据'
+        verbose_name = '岗位绑定企业'
         verbose_name_plural = verbose_name
 
-    studentCode = models.AutoField('学生学号', primary_key=True)
-    professionCode = models.CharField('专业编码', max_length=20)
-    classesCode = models.CharField('班级编号', max_length=20)
+    postCode = models.CharField('岗位编号', max_length=30)
+    enterpriseCode = models.CharField('企业编号', max_length=30)
+

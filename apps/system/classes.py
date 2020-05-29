@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from .models import professionManage, classesManage, classesBindProfession, studentBindClassesAndProfession
+from .models import professionManage, classesManage, classesBindProfession, studentManage
 
 
 def addClasses(requestData):
@@ -22,7 +22,8 @@ def addClasses(requestData):
             index = 1000
         else:
             index = int(dataList[-1]['classesCode']) + 1
-        if classesManage.objects.create(classesCode=index, classesName=classesName, classesLevel=requestData['classesLevel']):
+        if classesManage.objects.create(classesCode=index, classesName=classesName,
+                                        classesLevel=requestData['classesLevel']):
             classesCode = list(classesManage.objects.filter(classesName=classesName).values())[0]['classesCode']
             if classesBindProfession.objects.filter(classesCode=classesCode).count() > 0:
                 return JsonResponse({'ret': 1, 'data': '已经绑定专业,无需重复绑定!'})
@@ -52,9 +53,9 @@ def deleteClasses(requestData):
     :return:
     """
     classesCode = requestData['classesCode']
-    if classesManage.objects.filter(classesCode=classesCode).delete() and \
-            classesBindProfession.objects.filter(classesCode=classesCode).delete() and \
-            studentBindClassesAndProfession.objects.filter(classesCode=classesCode).delete():
+    if classesManage.objects.filter(classesCode=classesCode).delete() and classesBindProfession.objects.filter(
+            classesCode=classesCode).delete() and \
+            studentManage.objects.filter(classesCode=classesCode).update(classesCode='0', professionCode='0'):
         # 需要重置已绑定专业的班级还有学生
         return JsonResponse({'ret': 0, 'data': '删除班级成功！'})
     else:
@@ -76,7 +77,7 @@ def getclassesData(requestData):
     classData = []
     for i in classesManage.objects.values():
         classesHumanNumData = []
-        for ii in studentBindClassesAndProfession.objects.values():
+        for ii in studentManage.objects.values():
             if str(i['classesCode']) == str(ii['classesCode']):
                 classesHumanNumData.append({'classesCode': i['classesCode']})
         classData.append({'classesCode': i['classesCode'], 'classesHumanNumData': classesHumanNumData})
@@ -114,6 +115,7 @@ def getclassesData(requestData):
         'pageNum': pageNum,
         'total': total,
     })
+
 
 def getProfessionDataCascaderOptions(requestData):
     """

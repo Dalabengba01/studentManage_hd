@@ -1,7 +1,7 @@
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from .models import professionManage, classesManage, classesBindProfession, \
-    studentManage, studentBindClassesAndProfession
+    studentManage
 
 
 def addProfession(requestData):
@@ -50,9 +50,16 @@ def deleteProfession(requestData):
     :return:
     """
     professionCode = requestData['professionCode']
-    if professionManage.objects.filter(professionCode=professionCode).delete() and \
+    # 删除专业下的班级
+    classesCodeList = [i['classesCode'] for i in list(classesBindProfession.objects.filter(professionCode=professionCode).values())]
+    lock = 0
+    codeLen = len(classesCodeList)
+    for i in classesCodeList:
+        classesManage.objects.filter(classesCode=i).delete()
+        lock = lock + 1
+    if lock == codeLen and professionManage.objects.filter(professionCode=professionCode).delete() and \
             classesBindProfession.objects.filter(professionCode=professionCode).delete() and \
-            studentBindClassesAndProfession.objects.filter(professionCode=professionCode).delete():
+            studentManage.objects.filter(professionCode=professionCode).update(professionCode='0', classesCode='0'):
         # 需要重置已绑定专业的班级还有学生
         return JsonResponse({'ret': 0, 'data': '删除专业成功！'})
     else:
@@ -96,7 +103,7 @@ def getProfessionData(requestData):
                 for iii in ii['classesData']:
                     classesCode = iii['classesCode']
                     professionHumanNum = professionHumanNum + len(
-                        studentBindClassesAndProfession.objects.filter(classesCode=classesCode).values())
+                        studentManage.objects.filter(classesCode=classesCode).values())
                 classesData = {'professionCode': professionCode, 'professionName': professionName,
                                'professionHumanNum': professionHumanNum, 'professionClassesNum': professionClassesNum,
                                'addTime': addTime}

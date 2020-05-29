@@ -3,8 +3,7 @@ import os
 from django.http import JsonResponse
 import xlrd
 
-from .models import studentManage, studentBindClassesAndProfession, professionManage, classesManage, \
-    employmentReturnVisit
+from .models import studentManage, professionManage, classesManage
 
 
 def inputStudentData():
