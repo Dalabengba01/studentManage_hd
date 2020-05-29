@@ -118,7 +118,7 @@ class classesBindProfession(models.Model):
         verbose_name = '班级绑定专业相关数据'
         verbose_name_plural = verbose_name
 
-    classesCode = models.AutoField('班级编号', primary_key=True)
+    classesCode = models.IntegerField('班级编号', primary_key=True)
     professionCode = models.CharField('专业编号', max_length=30)
     addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
 
@@ -133,3 +133,16 @@ class postBindentErprise(models.Model):
     postCode = models.CharField('岗位编号', max_length=30)
     enterpriseCode = models.CharField('企业编号', max_length=30)
 
+
+class systemLogs(models.Model):
+    """系统操作日志"""
+
+    class Meta:
+        verbose_name = '系统操作日志'
+        verbose_name_plural = verbose_name
+
+    logCode = models.CharField('日志编号', max_length=30, primary_key=True)
+    operationUser = models.CharField('操作账户', max_length=30)
+    operationType = models.CharField('操作类型', max_length=100)
+    dataRecord = models.CharField('数据记录', max_length=2000)
+    addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")

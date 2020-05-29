@@ -1,6 +1,6 @@
 import json
 from django.http import JsonResponse
-from .models import teacherData
+from .models import teacherData, systemLogs
 from . import profession, classes, student, enterprise, system, dataStatistics, exportStudentData, inputStudentData
 
 
@@ -26,21 +26,34 @@ def user(request):
     # 根据不同的action分派给不同的函数进行处理
     useraction = requestData['useraction']
 
+    # 这几个功能无需登陆
     if useraction == 'systemInit':
+        # 使用日志收集
+        system.logs(requestData)
         return system.systemInit(requestData)
 
     if useraction == 'isSystemInit':
+        # 使用日志收集
+        system.logs(requestData)
         return system.isSystemInit(requestData)
 
     if useraction == 'isLogin':
+        # 使用日志收集
+        system.logs(requestData)
         return system.isLogin(requestData)
 
     if useraction == 'userLogin':
+        # 使用日志收集
+        system.logs(requestData)
         return system.userLogin(requestData)
 
     # 以下功能需要验证是否登录了才可以操作
     for i in teacherData.objects.filter(user_name=requestData['username']).values():
         if i['is_login']:
+
+            # 使用日志收集
+            logs(requestData)
+
             if useraction == 'userLogout':
                 return system.userLogout(requestData)
 
@@ -80,6 +93,9 @@ def data(request):
             for i in teacherData.objects.filter(user_name=requestData['username']).values():
                 if i['is_login']:
 
+                    # 使用日志收集
+                    system.logs(requestData)
+
                     if useraction == 'addProfession':
                         return profession.addProfession(requestData)
 
@@ -112,9 +128,6 @@ def data(request):
 
                     if useraction == 'addstudent':
                         return student.addstudent(requestData)
-
-                    if useraction == 'getEmploymentStatusData':
-                        return student.getEmploymentStatusData(requestData)
 
                     if useraction == 'editStudent':
                         return student.editStudent(requestData)
@@ -175,6 +188,12 @@ def data(request):
 
                     if useraction == 'getWorkDirection':
                         return dataStatistics.getWorkDirection(requestData)
+
+                    if useraction == 'getSystemLogsData':
+                        return system.getSystemLogsData(requestData)
+
+                    if useraction == 'deleteSystemLogsData':
+                        return system.deleteSystemLogsData(requestData)
 
                 else:
                     return JsonResponse({'ret': 1, 'data': '用户未登录！'})

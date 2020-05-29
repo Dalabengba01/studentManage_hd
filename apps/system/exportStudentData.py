@@ -16,8 +16,8 @@ def getexportStudentData(request):
     studentList1 = []  # 组装包含绑定专业及班级的关系
     studentBaseData = studentManage.objects.filter().values()  # 获取学生基本数据
     for i in studentBaseData:
-        if studentBindClassesAndProfession.objects.filter(studentCode=i['studentCode']).count() > 0:
-            for ii in studentBindClassesAndProfession.objects.filter(studentCode=i['studentCode']).values():  # 获取到绑定关系
+        if studentManage.objects.filter(studentCode=i['studentCode']).count() > 0:
+            for ii in studentManage.objects.filter(studentCode=i['studentCode']).values():  # 获取到绑定关系
                 i.update(ii)
                 studentList1.append(i)
         else:
@@ -53,36 +53,27 @@ def getexportStudentData(request):
         studentData.pop('professionCode')
         studentList.append(studentData)
 
-    # 添加回访信息数据
-    returnVisit = []
-    # for visit in employmentReturnVisit.objects.values():
-    #     data = {}
-    #     for student in studentList:
-    #         if str(visit['studentCode']) == str(student['studentCode']):
-    #             data.update(visit)
-    #             data.update(student)
-    #     returnVisit.append(data)
 
     excelData = []
     excelTitle = ''
     if searchType == '全部':
-        excelData = returnVisit
+        excelData = studentList
         excelTitle = '中兴创新学院学生就业管理系统(学生全部数据)'
 
     if searchType == '参军':
-        excelData = [i for i in returnVisit if i['employmentStatus'] == '参军']
+        excelData = [i for i in studentList if i['employmentStatus'] == '参军']
         excelTitle = '中兴创新学院学生就业管理系统(参军学生数据)'
 
     if searchType == '待安置':
-        excelData = [i for i in returnVisit if i['employmentStatus'] == '待安置']
+        excelData = [i for i in studentList if i['employmentStatus'] == '待安置']
         excelTitle = '中兴创新学院学生就业管理系统(待安置学生数据)'
 
     if searchType == '已安置':
-        excelData = [i for i in returnVisit if i['employmentStatus'] == '已安置']
+        excelData = [i for i in studentList if i['employmentStatus'] == '已安置']
         excelTitle = '中兴创新学院学生就业管理系统(已安置学生数据)'
 
     if searchType == '拟升学':
-        excelData = [i for i in returnVisit if i['employmentStatus'] == '拟升学']
+        excelData = [i for i in studentList if i['employmentStatus'] == '拟升学']
         excelTitle = '中兴创新学院学生就业管理系统(拟升学学生数据)'
 
     if len(excelData) > 0:
@@ -174,27 +165,15 @@ def getexportStudentData(request):
             studentSex = obj['studentSex']
             studentPhone = obj['studentPhone']
             employmentStatus = obj['employmentStatus']
-            companyName = obj['companyName']
-            companyAddress = obj['companyAddress']
-            postName = obj['postName']
+            # companyName = obj['companyName']
+            # companyAddress = obj['companyAddress']
+            # postName = obj['postName']
             studentSalary = obj['studentSalary']
-            companyPhone = obj['companyPhone']
+            # companyPhone = obj['companyPhone']
             teacherName = obj['teacherName']
             teacherPhone = obj['teacherPhone']
             studentStatus = obj['studentStatus']
             addTime = obj['addTime'].strftime("%Y-%m-%d")[:10]
-            data1 = obj['data1']
-            data2 = obj['data2']
-            data3 = obj['data3']
-            data4 = obj['data4']
-            data5 = obj['data5']
-            data6 = obj['data6']
-            data7 = obj['data7']
-            data8 = obj['data8']
-            data9 = obj['data9']
-            data10 = obj['data10']
-            data11 = obj['data11']
-            data12 = obj['data12']
 
             w.write(excel_row, 0, index, style)
             w.write(excel_row, 1, classesLevel, style)
@@ -205,28 +184,12 @@ def getexportStudentData(request):
             w.write(excel_row, 6, studentSex, style)
             w.write(excel_row, 7, studentPhone, style)
             w.write(excel_row, 8, employmentStatus, style)
-            w.write(excel_row, 9, companyName, style)
-            w.write(excel_row, 10, companyAddress, style)
-            w.write(excel_row, 11, postName, style)
             w.write(excel_row, 12, studentSalary, style)
-            w.write(excel_row, 13, companyPhone, style)
             w.write(excel_row, 14, teacherName, style)
             w.write(excel_row, 15, teacherPhone, style)
             w.write(excel_row, 16, studentStatus, style)
             w.write(excel_row, 17, addTime, style)
 
-            w.write(excel_row, 18, data1, style if data1 == '本月无变动' else myStyle)
-            w.write(excel_row, 19, data2, style if data2 == '本月无变动' else myStyle)
-            w.write(excel_row, 20, data3, style if data3 == '本月无变动' else myStyle)
-            w.write(excel_row, 21, data4, style if data4 == '本月无变动' else myStyle)
-            w.write(excel_row, 22, data5, style if data5 == '本月无变动' else myStyle)
-            w.write(excel_row, 23, data6, style if data6 == '本月无变动' else myStyle)
-            w.write(excel_row, 24, data7, style if data7 == '本月无变动' else myStyle)
-            w.write(excel_row, 25, data8, style if data8 == '本月无变动' else myStyle)
-            w.write(excel_row, 26, data9, style if data9 == '本月无变动' else myStyle)
-            w.write(excel_row, 27, data10, style if data10 == '本月无变动' else myStyle)
-            w.write(excel_row, 28, data11, style if data11 == '本月无变动' else myStyle)
-            w.write(excel_row, 29, data12, style if data12 == '本月无变动' else myStyle)
             excel_row += 1
         # 检测文件是够存在
         # 方框中代码是保存本地文件使用，如不需要请删除该代码

@@ -164,11 +164,13 @@ def editStudent(requestData):
     try:
         professionCode = requestData['classesAndProfesion'][0]
         classesCode = requestData['classesAndProfesion'][1]
-        enterpriseCode = requestData['enterpriseAndPostData'][0]
-        postCode = requestData['enterpriseAndPostData'][1]
     except Exception:
         professionCode = '0'
         classesCode = '0'
+    try:
+        enterpriseCode = requestData['enterpriseAndPostData'][0]
+        postCode = requestData['enterpriseAndPostData'][1]
+    except Exception:
         enterpriseCode = '0'
         postCode = '0'
 
