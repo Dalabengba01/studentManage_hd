@@ -236,7 +236,7 @@ def getIndexData(requestData):
     :param requestData:
     :return:
     """
-    employmentStatusCount = 0
+    postCount = enterprisePost.objects.values().count()
     unemployedCount = studentManage.objects.exclude(employmentStatus='已安置').values().count()
     employmentCount = studentManage.objects.filter(employmentStatus='已安置').values().count()
     studentSumCount = studentManage.objects.filter().values().count()
@@ -246,7 +246,7 @@ def getIndexData(requestData):
     girlSumCount = studentManage.objects.filter(studentSex='女生').values().count()
 
     return JsonResponse(
-        {'ret': 0, 'employmentStatusCount': employmentStatusCount, 'unemployedCount': unemployedCount,
+        {'ret': 0, 'postCount': postCount, 'unemployedCount': unemployedCount,
          'employmentCount': employmentCount,
          'studentSumCount': studentSumCount, 'professionSumCount': professionSumCount,
          'classesSumCount': classesSumCount,
