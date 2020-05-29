@@ -109,7 +109,8 @@ def deleteEnterprise(requestData):
         for i in postCode:
             postBindentErprise.objects.filter(postCode=i).delete()
             enterprisePost.objects.filter(postCode=i).delete()
-            studentManage.objects.filter(postCode=i).update(postCode='0', enterpriseCode='0')
+            studentManage.objects.filter(postCode=i).update(postCode='0', enterpriseCode='0', employmentStatus='待安置',
+                                                            studentSalary=0)
         return JsonResponse({'ret': 0, 'data': '删除企业成功！'})
     except Exception:
         return JsonResponse({'ret': 0, 'data': '删除企业失败，请稍后重试！'})
@@ -185,7 +186,9 @@ def deletePost(requestData):
     postCode = requestData['postCode']
     if enterprisePost.objects.filter(postCode=postCode).delete() and postBindentErprise.objects.filter(
             postCode=postCode).delete() and studentManage.objects.filter(postCode=postCode).update(enterpriseCode='0',
-                                                                                                   postCode='0'):
+                                                                                                   postCode='0',
+                                                                                                   employmentStatus='待安置',
+                                                                                                   studentSalary=0):
         return JsonResponse({'ret': 0, 'data': '删除岗位成功！'})
     else:
         return JsonResponse({'ret': 1, 'data': '删除岗位失败,请稍后重试！'})

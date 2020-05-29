@@ -51,7 +51,8 @@ def deleteProfession(requestData):
     """
     professionCode = requestData['professionCode']
     # 删除专业下的班级
-    classesCodeList = [i['classesCode'] for i in list(classesBindProfession.objects.filter(professionCode=professionCode).values())]
+    classesCodeList = [i['classesCode'] for i in
+                       list(classesBindProfession.objects.filter(professionCode=professionCode).values())]
     lock = 0
     codeLen = len(classesCodeList)
     for i in classesCodeList:
