@@ -9,6 +9,8 @@ from .models import teacherData, systemLogs
 def systemInit(requestData):
     if int(teacherData.objects.count()) <= 0:
         teacherData.objects.create(user_name=requestData['username'], user_pass=requestData['password'])
+        # 使用日志收集
+        logs(requestData)
         return JsonResponse({'ret': 0, 'data': '系统初始化成功！'})
     elif int(teacherData.objects.count()) > 0:
         return JsonResponse({'ret': 1, 'data': '系统已经初始化！'})
@@ -28,11 +30,14 @@ def isSystemInit(requestData):
 def userLogin(requestData):
     username = requestData['username']
     password = requestData['password']
-    userList = list(teacherData.objects.filter(user_name=username, user_pass=password).values())[0]
-    if (userList['user_name'] == username) and (userList['user_pass'] == password):
-        teacherData.objects.filter(user_name=username).update(is_login=True)
-        return JsonResponse({'ret': 0, 'data': '账号登录系统成功！'})
-    else:
+    try:
+        userList = list(teacherData.objects.filter(user_name=username, user_pass=password).values())[0]
+        if (userList['user_name'] == username) and (userList['user_pass'] == password):
+            teacherData.objects.filter(user_name=username).update(is_login=True)
+            # 使用日志收集
+            logs(requestData)
+            return JsonResponse({'ret': 0, 'data': '账号登录系统成功！'})
+    except Exception:
         return JsonResponse({'ret': 1, 'data': '账号或密码错误！'})
 
 

@@ -28,23 +28,15 @@ def user(request):
 
     # 这几个功能无需登陆
     if useraction == 'systemInit':
-        # 使用日志收集
-        system.logs(requestData)
         return system.systemInit(requestData)
 
     if useraction == 'isSystemInit':
-        # 使用日志收集
-        system.logs(requestData)
         return system.isSystemInit(requestData)
 
     if useraction == 'isLogin':
-        # 使用日志收集
-        system.logs(requestData)
         return system.isLogin(requestData)
 
     if useraction == 'userLogin':
-        # 使用日志收集
-        system.logs(requestData)
         return system.userLogin(requestData)
 
     # 以下功能需要验证是否登录了才可以操作
@@ -52,7 +44,7 @@ def user(request):
         if i['is_login']:
 
             # 使用日志收集
-            logs(requestData)
+            system.logs(requestData)
 
             if useraction == 'userLogout':
                 return system.userLogout(requestData)
