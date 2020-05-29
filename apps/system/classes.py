@@ -54,8 +54,8 @@ def deleteClasses(requestData):
     """
     classesCode = requestData['classesCode']
     if classesManage.objects.filter(classesCode=classesCode).delete() and classesBindProfession.objects.filter(
-            classesCode=classesCode).delete() and \
-            studentManage.objects.filter(classesCode=classesCode).update(classesCode='0', professionCode='0'):
+            classesCode=classesCode).delete():
+        studentManage.objects.filter(classesCode=classesCode).update(classesCode='0', professionCode='0')
         # 需要重置已绑定专业的班级还有学生
         return JsonResponse({'ret': 0, 'data': '删除班级成功！'})
     else:
