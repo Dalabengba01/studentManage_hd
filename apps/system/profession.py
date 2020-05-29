@@ -59,9 +59,9 @@ def deleteProfession(requestData):
         classesManage.objects.filter(classesCode=i).delete()
         lock = lock + 1
     if lock == codeLen and professionManage.objects.filter(professionCode=professionCode).delete() and \
-            classesBindProfession.objects.filter(professionCode=professionCode).delete() and \
-            studentManage.objects.filter(professionCode=professionCode).update(professionCode='0', classesCode='0'):
-        # 需要重置已绑定专业的班级还有学生
+            classesBindProfession.objects.filter(professionCode=professionCode).delete():
+        studentManage.objects.filter(professionCode=professionCode).update(professionCode='0', classesCode='0')
+
         return JsonResponse({'ret': 0, 'data': '删除专业成功！'})
     else:
         return JsonResponse({'ret': 1, 'data': '删除专业失败,请稍后重试！'})
