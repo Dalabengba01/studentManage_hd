@@ -109,7 +109,7 @@ def deleteEnterprise(requestData):
         for i in postCode:
             postBindentErprise.objects.filter(postCode=i).delete()
             enterprisePost.objects.filter(postCode=i).delete()
-            studentManage.objects.filter(postCode=i).update(postCode='0',enterpriseCode='0')
+            studentManage.objects.filter(postCode=i).update(postCode='0', enterpriseCode='0')
         return JsonResponse({'ret': 0, 'data': '删除企业成功！'})
     except Exception:
         return JsonResponse({'ret': 0, 'data': '删除企业失败，请稍后重试！'})
@@ -170,7 +170,7 @@ def editPost(requestData):
     if enterprisePost.objects.filter(postCode=postCode).update(postName=postName, recruitCount=recruitCount,
                                                                postAddress=postAddress,
                                                                salaryTreatment=salaryTreatment) and postBindentErprise.objects.filter(
-            postCode=postCode).update(enterpriseCode=bindEnterprise):
+        postCode=postCode).update(enterpriseCode=bindEnterprise):
         return JsonResponse({'ret': 0, 'data': '编辑岗位成功！'})
     else:
         return JsonResponse({'ret': 1, 'data': '编辑岗位失败,请稍后重试！'})
