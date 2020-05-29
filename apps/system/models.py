@@ -82,6 +82,7 @@ class studentManage(models.Model):
     studentCode = models.CharField('学生学号', primary_key=True, max_length=30)
     studentName = models.CharField('学生名称', max_length=30)
     studentSex = models.CharField('学生性别', max_length=10)
+    studentNativePlace = models.CharField('学生籍贯', max_length=30)
     studentPhone = models.CharField('学生电话', max_length=11)
     employmentStatus = models.CharField('就业状态', max_length=21)
     studentSalary = models.CharField('实习薪资', max_length=20)

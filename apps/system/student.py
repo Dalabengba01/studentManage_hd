@@ -14,6 +14,7 @@ def addstudent(requestData):
     studentCode = requestData['studentCode']
     studentName = requestData['studentName']
     studentSex = requestData['studentSex']
+    studentNativePlace = requestData['studentNativePlace']
     studentPhone = requestData['studentPhone']
     employmentStatus = requestData['employmentStatus']
     studentSalary = requestData['studentSalary']
@@ -34,6 +35,7 @@ def addstudent(requestData):
         return JsonResponse({'ret': 1, 'data': '已有相同学号,请检查！'})
     else:
         if studentManage.objects.create(studentCode=studentCode, studentName=studentName, studentSex=studentSex,
+                                        studentNativePlace=studentNativePlace,
                                         studentPhone=studentPhone, employmentStatus=employmentStatus,
                                         studentSalary=studentSalary,
                                         teacherName=teacherName, teacherPhone=teacherPhone,
@@ -58,93 +60,6 @@ def deleteStudent(requestData):
         return JsonResponse({'ret': 1, 'data': '删除学生信息失败,请稍后重试!'})
 
 
-# def getEmploymentStatusData(requestData):
-#     """
-#     获取学生就业状态详细数据操作函数
-#     :param requestData:
-#     :return:
-#     """
-#     queryData = requestData['query']  # 查询的元数据
-#     keyWord = queryData['keyWord']  # 查询的关键词
-#     pageNum = queryData['pageNum']  # 当前页数
-#     pageSize = queryData['pageSize']  # 一页多少数据
-#     queryType = queryData['queryType']  # 搜索类型
-#
-#     subData0 = []
-#     if queryType is None or queryType == '' or \
-#             queryType == 'studentName' or \
-#             queryType == 'professionName' or \
-#             queryType == 'classesName':
-#         for i in list(employmentReturnVisit.objects.filter().values()):
-#             subData0.append(i)
-#
-#     if queryType == 'studentCode':
-#         for i in list(employmentReturnVisit.objects.filter(studentCode__contains=keyWord).values()):
-#             subData0.append(i)
-#
-#     # 最终数据列表合成
-#     userList = []
-#     for i in subData0:
-#         studentCode = i['studentCode']
-#         studentName = ''
-#         toProfession = ''
-#         toClasses = ''
-#
-#         # 获取专业名称和班级名称
-#         for ii in studentBindClassesAndProfession.objects.filter(studentCode=studentCode).values():
-#             professionCode = ii['professionCode']
-#             classesCode = ii['classesCode']
-#             for iii in professionManage.objects.filter(professionCode=professionCode).values():
-#                 toProfession = iii['professionName']
-#             for iiii in classesManage.objects.filter(classesCode=classesCode).values():
-#                 toClasses = iiii['classesName']
-#
-#         # 获取学生名称
-#         for iiiii in studentManage.objects.filter(studentCode=studentCode).values():
-#             studentName = iiiii['studentName']
-#         data = {}
-#         data.update({'studentName': studentName, 'toProfession': toProfession, 'toClasses': toClasses})
-#         data.update(i)
-#         # 合成最终数据
-#         userList.append(data)
-#
-#     # 用户按照姓名查找
-#     queryTypeStudentName = []
-#     if queryType == 'studentName':
-#         for i in userList:
-#             if i['studentName'].find(keyWord) != -1:
-#                 queryTypeStudentName.append(i)
-#         userList = queryTypeStudentName
-#
-#     # 用户按照专业名查找
-#     queryTypeProfessionName = []
-#     if queryType == 'professionName':
-#         for i in userList:
-#             if i['toProfession'].find(keyWord) != -1:
-#                 queryTypeProfessionName.append(i)
-#         userList = queryTypeProfessionName
-#
-#     # 用户按照班级名查找
-#     queryTypeClassesName = []
-#     if queryType == 'classesName':
-#         for i in userList:
-#             if i['toClasses'].find(keyWord) != -1:
-#                 queryTypeClassesName.append(i)
-#         userList = queryTypeClassesName
-#
-#     paginator = Paginator(userList, pageSize)  # 每页显示多少数据
-#     total = paginator.count  # 总数据量
-#     # sumPageNum = paginator.num_pages # 总页数
-#     data = paginator.page(pageNum).object_list  # 某一页的数据
-#
-#     return JsonResponse({
-#         'ret': 0,
-#         'data': data,
-#         'pageNum': pageNum,
-#         'total': total,
-#     })
-
-
 def editStudent(requestData):
     """
     修改学生信息操作
@@ -154,6 +69,7 @@ def editStudent(requestData):
     studentCode = requestData['studentCode']
     studentName = requestData['studentName']
     studentSex = requestData['studentSex']
+    studentNativePlace = requestData['studentNativePlace']
     studentPhone = requestData['studentPhone']
     studentStatus = requestData['studentStatus']
     teacherName = requestData['teacherName']
@@ -176,7 +92,8 @@ def editStudent(requestData):
 
     if studentManage.objects \
             .filter(studentCode=studentCode) \
-            .update(studentName=studentName, studentSex=studentSex, professionCode=professionCode,
+            .update(studentName=studentName, studentSex=studentSex, studentNativePlace=studentNativePlace,
+                    professionCode=professionCode,
                     classesCode=classesCode, studentPhone=studentPhone, studentStatus=studentStatus,
                     teacherName=teacherName, teacherPhone=teacherPhone, employmentStatus=employmentStatus,
                     studentSalary=studentSalary, enterpriseCode=enterpriseCode, postCode=postCode, postDuty=postDuty):
