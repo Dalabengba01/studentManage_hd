@@ -205,7 +205,7 @@ def getPeopleData(requestData):
     type = requestData['type']
 
     if type == 'getClassesPeopleData':
-        classesCode = requestData['classesCode']
+        classesCode = requestData['code']
         # 提取本班级有哪些学生
         boyNum = 0
         girlNum = 0
@@ -219,7 +219,7 @@ def getPeopleData(requestData):
         return JsonResponse({'ret': 0, 'bodyMax': bodyMax, 'boyNum': boyNum, 'girlNum': girlNum})
 
     if type == 'getProfessionPeopleData':
-        professionCode = requestData['professionCode']
+        professionCode = requestData['code']
         boyNum = 0
         girlNum = 0
         for i in studentManage.objects.filter(professionCode=professionCode).values():
