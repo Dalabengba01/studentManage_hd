@@ -77,6 +77,7 @@ def editStudent(requestData):
     employmentStatus = requestData['employmentStatus']
     studentSalary = requestData['studentSalary']
     postDuty = requestData['postDuty']
+
     try:
         professionCode = requestData['classesAndProfesion'][0]
         classesCode = requestData['classesAndProfesion'][1]
