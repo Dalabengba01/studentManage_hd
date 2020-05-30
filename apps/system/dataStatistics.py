@@ -21,7 +21,7 @@ def getWorkAreaData(requestData):
             qq.append({'name': ii['postAddress'][:2]})
             continue
 
-    # 过滤筛选数据去掉重复数据 或这个list(set(qq))
+    # 过滤筛选数据去掉重复数据(用于统计) 或这个list(set(qq))
     kk = []
     for i in qq:
         if i not in kk:
@@ -31,8 +31,8 @@ def getWorkAreaData(requestData):
     data = []
     for i in kk:
         value = 0
-        for ii in enterprisePost.objects.values():
-            if (ii['postAddress'].find(i['name'])) != -1:
+        for ii in qq:
+            if (ii['name'].find(i['name'])) != -1:
                 value = value + 1
             i.update({'value': value})
         data.append(i)
@@ -47,6 +47,7 @@ def getWorkAreaData(requestData):
                 zz.update({'value': [{'name': '学生人数', 'value': value}]})
                 continue
         toolTipData.append(zz)
+
     return JsonResponse({'ret': 0, 'data': data, 'toolTipData': toolTipData})
 
 
