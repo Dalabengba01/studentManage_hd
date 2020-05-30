@@ -85,7 +85,7 @@ class studentManage(models.Model):
     studentNativePlace = models.CharField('学生籍贯', max_length=30)
     studentPhone = models.CharField('学生电话', max_length=11)
     employmentStatus = models.CharField('就业状态', max_length=21)
-    studentSalary = models.CharField('实习薪资', max_length=20)
+    studentSalary = models.IntegerField('实习薪资')
     teacherName = models.CharField('直属主管', max_length=30)
     teacherPhone = models.CharField('主管电话', max_length=11)
     studentStatus = models.CharField('学生状态', max_length=10)
