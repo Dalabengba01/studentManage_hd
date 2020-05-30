@@ -2,7 +2,6 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from .models import professionManage, classesManage, classesBindProfession, \
     studentManage, enterprisePost, enterpriseManage
-import datetime
 
 
 def addstudent(requestData):
@@ -98,6 +97,7 @@ def editStudent(requestData):
                     classesCode=classesCode, studentPhone=studentPhone, studentStatus=studentStatus,
                     teacherName=teacherName, teacherPhone=teacherPhone, employmentStatus=employmentStatus,
                     studentSalary=studentSalary, enterpriseCode=enterpriseCode, postCode=postCode, postDuty=postDuty):
+        studentManage.objects.get(studentCode=studentCode).save()  # 更新修改时间
 
         return JsonResponse({'ret': 0, 'data': '修改基本信息成功!'})
     else:
@@ -120,45 +120,47 @@ def getStudentData(requestData):
     # 创建新的列表供后续功能操作
     subData0 = []
 
+    obj = studentManage.objects
+
     if queryType == 'noSearch' and keyWord == '' and searchType in ['全部', '参军', '待安置', '已安置', '拟升学']:
 
         if searchType == '全部':
-            subData0 = list(studentManage.objects.filter().values())
+            subData0 = list(obj.filter().values())
 
         if searchType == '参军':
-            subData0 = list(studentManage.objects.filter(employmentStatus='参军').values())
+            subData0 = list(obj.filter(employmentStatus='参军').values())
 
         if searchType == '待安置':
-            subData0 = list(studentManage.objects.filter(employmentStatus='待安置').values())
+            subData0 = list(obj.filter(employmentStatus='待安置').values())
 
         if searchType == '已安置':
-            subData0 = list(studentManage.objects.filter(employmentStatus='已安置').values())
+            subData0 = list(obj.filter(employmentStatus='已安置').values())
 
         if searchType == '拟升学':
-            subData0 = list(studentManage.objects.filter(employmentStatus='拟升学').values())
+            subData0 = list(obj.filter(employmentStatus='拟升学').values())
 
     if queryType == 'studentCode' and keyWord != '':
-        subData0 = list(studentManage.objects.filter(studentCode__contains=keyWord).values())
+        subData0 = list(obj.filter(studentCode__contains=keyWord).values())
 
     if queryType == 'studentName' and keyWord != '':
-        subData0 = list(studentManage.objects.filter(studentName__contains=keyWord).values())
+        subData0 = list(obj.filter(studentName__contains=keyWord).values())
 
     if queryType == 'classesName' and keyWord != '':
         # 1.查询此班级的编号
         classesCode = str(list(classesManage.objects.filter(classesName__contains=keyWord).values())[0]['classesCode'])
         # 2.利用此编号查询学生绑定班级专业表
-        bindCode = list(studentManage.objects.filter(classesCode=classesCode).values())
+        bindCode = list(obj.filter(classesCode=classesCode).values())
         # 3.存储有此班级编号的学号
         studentCodeList = [str(i['studentCode']) for i in bindCode if str(i['classesCode']) == str(classesCode)]
         studentData = []
         for i in studentCodeList:
-            studentData.append(list(studentManage.objects.filter(studentCode=i).values())[0])
+            studentData.append(list(obj.filter(studentCode=i).values())[0])
         subData0 = studentData
 
     userList = []
     for i in subData0:
         # 获取所属专业,班级名称，班级届数并合并到学生信息列表中
-        for ii in studentManage.objects.filter(studentCode=i['studentCode']).values():
+        for ii in obj.filter(studentCode=i['studentCode']).values():
             if ii['classesCode'] != '0':
                 studentLevel = ''
                 toClasses = ''
@@ -173,19 +175,21 @@ def getStudentData(requestData):
                 i.update({'studentLevel': '未绑定', 'toProfession': '未绑定', 'toClasses': '未绑定'})
 
         # 获取岗位信息和企业信息
-        for studentBindData in list(studentManage.objects.filter(studentCode=i['studentCode']).values()):
+        for studentBindData in list(obj.filter(studentCode=i['studentCode']).values()):
             if studentBindData['postCode'] != '0':
                 for postData in list(enterprisePost.objects.filter(postCode=studentBindData['postCode']).values()):
-                    i.update(postData)
+                    i.update({'postName': postData['postName'], 'postAddress': postData['postAddress']})
             else:
-                i.update({'postName': '未绑定'})
+                i.update({'postName': '未绑定', 'postAddress': '未绑定'})
 
             if studentBindData['enterpriseCode'] != '0':
                 for enterpriseData in list(
                         enterpriseManage.objects.filter(enterpriseCode=studentBindData['enterpriseCode']).values()):
-                    i.update(enterpriseData)
+                    i.update({'enterpriseName': enterpriseData['enterpriseName'],
+                              'enterpriseAddress': enterpriseData['enterpriseAddress'],
+                              'enterprisePhone': enterpriseData['enterprisePhone']})
             else:
-                i.update({'enterpriseName': '未绑定', 'postAddress': '未绑定', 'enterprisePhone': '未绑定'})
+                i.update({'enterpriseName': '未绑定', 'enterpriseAddress': '未绑定', 'enterprisePhone': '未绑定'})
         userList.append(i)
 
     paginator = Paginator(userList, pageSize)  # 每页显示多少数据

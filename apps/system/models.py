@@ -96,20 +96,7 @@ class studentManage(models.Model):
     # 学生绑定专业班级
     professionCode = models.CharField('专业编号', max_length=30)
     classesCode = models.CharField('班级编号', max_length=30)
-    addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
-
-
-class studentPostChange(models.Model):
-    """学生岗位信息变化表"""
-
-    class Meta:
-        verbose_name = '学生岗位信息变化表'
-        verbose_name_plural = verbose_name
-
-    statusID = models.IntegerField('就业状态标识', primary_key=True)
-    studentCode = models.CharField('学生学号', max_length=30)
-    enterpriseCode = models.IntegerField('企业编号')
-    addTime = models.DateField(auto_now=True, verbose_name="记录日期")
+    addTime = models.DateTimeField(auto_now=True, verbose_name="修改时间")
 
 
 class classesBindProfession(models.Model):
