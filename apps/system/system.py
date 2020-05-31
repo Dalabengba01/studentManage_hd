@@ -108,14 +108,17 @@ def logs(data):
         'editStudent': '编辑学生信息',
         'deleteStudent': '删除学生'
     }
-
     try:
         operationUser = data['username']
     except Exception:
         operationUser = 'system'
     try:
         operationType = apiName[data['useraction']]
-        dataRecord = data
+        if operationType == '用户修改账号密码' or operationType == '用户登陆':
+            dataRecord = {'useraction': data['useraction'], 'username': data['username']}
+        else:
+            dataRecord = data
+
         index = 1000
         # 正序查询
         dataList = list(systemLogs.objects.values().order_by('logCode'))
