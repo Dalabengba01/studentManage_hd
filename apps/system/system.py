@@ -57,7 +57,7 @@ def userModifyPass(requestData):
     oldPassword = requestData['oldPassword']
     password = requestData['password']
     time.sleep(1.5)
-    for i in teacherData.objects.values():
+    for i in teacherData.objects.filter(user_name=username, user_pass=oldPassword).values():
         if i['user_name'] == username and i['user_pass'] == oldPassword:
             teacherData.objects.filter(user_name=username).update(user_pass=password)
             return JsonResponse({'ret': 0, 'data': '密码修改成功,请重新登录！'})
@@ -70,10 +70,14 @@ def userModifyAccount(requestData):
     username = requestData['username']
     newusername = requestData['newusername']
     time.sleep(1.5)
-    for i in teacherData.objects.filter().values():
+
+    for i in teacherData.objects.filter(user_name=username).values():
         if i['user_name'] == username:
-            teacherData.objects.filter(user_name=username).update(user_name=newusername)
-            return JsonResponse({'ret': 0, 'data': '账户名称修改成功,请重新登录！'})
+            if len(list(teacherData.objects.filter(user_name=newusername).values())) <= 0:
+                teacherData.objects.filter(user_name=username).update(user_name=newusername)
+                return JsonResponse({'ret': 0, 'data': '账户名称修改成功,请重新登录！'})
+            else:
+                return JsonResponse({'ret': 1, 'data': '系统已存在同名账户，请更换！'})
         else:
             return JsonResponse({'ret': 1, 'data': '原始账号名称错误！'})
 
