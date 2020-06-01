@@ -132,5 +132,5 @@ class systemLogs(models.Model):
     logCode = models.CharField('日志编号', max_length=30, primary_key=True)
     operationUser = models.CharField('操作账户', max_length=30)
     operationType = models.CharField('操作类型', max_length=100)
-    dataRecord = models.CharField('数据记录', max_length=2000)
+    dataRecord = models.TextField('数据记录', max_length=2000)
     addTime = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
