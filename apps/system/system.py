@@ -8,7 +8,8 @@ from .models import teacherData, systemLogs
 # 系统初始化
 def systemInit(requestData):
     if int(teacherData.objects.count()) <= 0:
-        teacherData.objects.create(user_name=requestData['username'], user_pass=requestData['password'])
+        teacherData.objects.create(user_name=requestData['username'], user_pass=requestData['password'],
+                                   teacher_name=requestData['teachername'])
         # 使用日志收集
         logs(requestData)
         return JsonResponse({'ret': 0, 'data': '系统初始化成功！'})
@@ -98,6 +99,7 @@ def userModifyTeacher(requestData):
         else:
             return JsonResponse({'ret': 1, 'data': '原始教师名称错误！'})
 
+
 # 用户及系统操作日志收集记录
 def logs(data):
     """
@@ -112,6 +114,7 @@ def logs(data):
         'userLogin': '用户登陆',
         'userModifyAccount': '用户修改账号名称',
         'userModifyPass': '用户修改账号密码',
+        'userModifyTeacher': '用户修改教师名称',
         'addProfession': '添加专业',
         'editProfession': '编辑专业信息',
         'deleteProfession': '删除专业',
@@ -126,7 +129,8 @@ def logs(data):
         'deletePost': '删除岗位',
         'addstudent': '添加学生',
         'editStudent': '编辑学生信息',
-        'deleteStudent': '删除学生'
+        'deleteStudent': '删除学生',
+        'deletePostTrack': '删除岗位追踪数据'
     }
     try:
         operationUser = data['username']
