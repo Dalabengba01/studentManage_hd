@@ -82,6 +82,22 @@ def userModifyAccount(requestData):
             return JsonResponse({'ret': 1, 'data': '原始账号名称错误！'})
 
 
+# 用户账户修改
+def userModifyTeacher(requestData):
+    username = requestData['username']
+    teachername = requestData['teachername']
+    newusername = requestData['newusername']
+
+    for i in list(teacherData.objects.filter(user_name=username).values()):
+        if i['teacher_name'] == teachername:
+            if len(list(teacherData.objects.filter(teacher_name=newusername).values())) <= 0:
+                teacherData.objects.filter(teacher_name=teachername).update(teacher_name=newusername)
+                return JsonResponse({'ret': 0, 'data': '教师名称修改成功！'})
+            else:
+                return JsonResponse({'ret': 1, 'data': '系统已存在同名教师名称，请更换！'})
+        else:
+            return JsonResponse({'ret': 1, 'data': '原始教师名称错误！'})
+
 # 用户及系统操作日志收集记录
 def logs(data):
     """

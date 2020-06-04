@@ -55,6 +55,9 @@ def user(request):
             if useraction == 'userModifyAccount':
                 return system.userModifyAccount(requestData)
 
+            if useraction == 'userModifyTeacher':
+                return system.userModifyTeacher(requestData)
+
         else:
             return JsonResponse({'ret': 1, 'data': '用户未登录！'})
     else:
