@@ -1,7 +1,7 @@
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from .models import professionManage, classesManage, classesBindProfession, \
-    studentManage, enterprisePost, enterpriseManage
+    studentManage, enterprisePost, enterpriseManage, studentPostTrack, teacherData
 
 
 def addstudent(requestData):
@@ -76,6 +76,7 @@ def editStudent(requestData):
     employmentStatus = requestData['employmentStatus']
     studentSalary = requestData['studentSalary']
     postDuty = requestData['postDuty']
+    remarks = requestData['remarks']
 
     try:
         professionCode = requestData['classesAndProfesion'][0]
@@ -90,18 +91,62 @@ def editStudent(requestData):
         enterpriseCode = '0'
         postCode = '0'
 
+    # 检查学生数据是否改变，没有改变则不添加新的岗位追踪数据
+    student = list(studentManage.objects.filter(studentCode=studentCode, studentName=studentName,
+                                                enterpriseCode=enterpriseCode, postCode=postCode, postDuty=postDuty,
+                                                remarks=remarks).values())
+    isCreate = False
+    if len(student) <= 0:
+        isCreate = True
+
+    # 获取企业名称
+    enterprise = list(enterpriseManage.objects.filter(enterpriseCode=enterpriseCode).values())
+    enterpriseName = ''
+    if len(enterprise) > 0:
+        enterpriseName = enterprise[0]['enterpriseName']
+    # 获取岗位名称
+    post = list(enterprisePost.objects.filter(postCode=postCode).values())
+    postName = ''
+    if len(enterprise) > 0:
+        postName = post[0]['postName']
+
+    if len(list(studentPostTrack.objects.filter(studentCode=studentCode, studentName=studentName,
+                                                enterpriseName=enterpriseName,
+                                                postName=postName).values())) <= 0:
+        isCreate = True
+
+    # 判断是否创建或更新学生岗位追踪表
+    if employmentStatus == '已安置' and isCreate:
+        # 1.检查是否存在该学生的变化信息
+        studentPT = studentPostTrack.objects
+        index = 1000
+        # 正序查询
+        dataList = list(studentPT.values().order_by('trackCode'))
+        if len(dataList) <= 0:
+            index = 1000
+        else:
+            index = int(dataList[-1]['trackCode']) + 1
+
+        teacher = list(teacherData.objects.filter(user_name=requestData['username']).values())
+        recordTeacher = ''
+        if len(teacher) > 0:
+            recordTeacher = teacher[0]['teacher_name']
+        studentPT.create(trackCode=index, studentCode=studentCode, studentName=studentName,
+                         recordTeacher=recordTeacher,
+                         enterpriseName=enterpriseName, postName=postName, postDuty=postDuty, remarks=remarks)
     if studentManage.objects \
             .filter(studentCode=studentCode) \
             .update(studentName=studentName, studentSex=studentSex, studentNativePlace=studentNativePlace,
                     professionCode=professionCode,
                     classesCode=classesCode, studentPhone=studentPhone, studentStatus=studentStatus,
                     teacherName=teacherName, teacherPhone=teacherPhone, employmentStatus=employmentStatus,
-                    studentSalary=studentSalary, enterpriseCode=enterpriseCode, postCode=postCode, postDuty=postDuty):
+                    studentSalary=studentSalary, enterpriseCode=enterpriseCode, postCode=postCode,
+                    postDuty=postDuty,
+                    remarks=remarks):
         studentManage.objects.get(studentCode=studentCode).save()  # 更新修改时间
-
         return JsonResponse({'ret': 0, 'data': '修改基本信息成功!'})
-    else:
-        return JsonResponse({'ret': 1, 'data': '修改基本信息失败,请稍后重试!'})
+
+    return JsonResponse({'ret': 1, 'data': '修改基本信息失败,请稍后重试!'})
 
 
 def getStudentData(requestData):
@@ -254,3 +299,55 @@ def getProfessionAndClassesDataCascaderOptions(requestData):
         professionContainer.append(i)
 
     return JsonResponse({'ret': 0, 'data': professionContainer})
+
+
+def getPostTrackData(requestData):
+    """
+    获取岗位追踪数据
+    :param requestData:
+    :return:
+    """
+    queryData = requestData['query']  # 查询的元数据
+    keyWord = queryData['keyWord']  # 查询的关键词
+    pageNum = queryData['pageNum']  # 当前页数
+    pageSize = queryData['pageSize']  # 一页多少数据
+    queryType = queryData['queryType']  # 搜索类型
+
+    dataList = []
+    obj = studentPostTrack.objects
+
+    if queryType == 'noSearch':
+        dataList = list(obj.filter().values())
+
+    if queryType == 'studentCode':
+        dataList = list(obj.filter(studentCode__contains=keyWord).values())
+
+    if queryType == 'studentName':
+        dataList = list(obj.filter(studentName__contains=keyWord).values())
+
+    if queryType == 'recordTeacher':
+        dataList = list(obj.filter(recordTeacher__contains=keyWord).values())
+
+    paginator = Paginator(dataList, pageSize)  # 每页显示多少数据
+    total = paginator.count  # 总数据量
+    data = paginator.page(pageNum).object_list  # 某一页的数据
+
+    return JsonResponse({
+        'ret': 0,
+        'data': data,
+        'pageNum': pageNum,
+        'total': total,
+    })
+
+
+def deletePostTrack(requestData):
+    """
+    删除岗位追踪数据
+    :param requestData:
+    :return:
+    """
+    trackCode = requestData['trackCode']
+    if studentPostTrack.objects.filter(trackCode=trackCode).delete():
+        return JsonResponse({'ret': 0, 'data': '删除学生岗位追踪信息成功!'})
+    else:
+        return JsonResponse({'ret': 1, 'data': '删除学生岗位追踪信息失败,请稍后重试!'})

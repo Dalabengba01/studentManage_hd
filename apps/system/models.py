@@ -10,6 +10,7 @@ class teacherData(models.Model):
 
     user_name = models.CharField('账户名称', max_length=21, primary_key=True)
     user_pass = models.CharField('账户密码', max_length=21)
+    teacher_name = models.CharField('教师名称', max_length=10)
     is_login = models.BooleanField('是否登录', default=False)
     add_time = models.DateTimeField(auto_now_add=True, verbose_name="初始化时间")
 
@@ -96,7 +97,21 @@ class studentManage(models.Model):
     # 学生绑定专业班级
     professionCode = models.CharField('专业编号', max_length=30)
     classesCode = models.CharField('班级编号', max_length=30)
+    remarks = models.CharField('备注', max_length=400)
     addTime = models.DateTimeField(auto_now=True, verbose_name="修改时间")
+
+
+class studentPostTrack(models.Model):
+    """学生岗位追踪表"""
+    trackCode = models.IntegerField('数据编号', primary_key=True)
+    studentCode = models.CharField('学生学号', max_length=30)
+    studentName = models.CharField('学生名称', max_length=30)
+    recordTeacher = models.CharField('记录教师', max_length=30)
+    enterpriseName = models.CharField('企业名称', max_length=30)
+    postName = models.CharField('岗位名称', max_length=200)
+    postDuty = models.CharField('岗位职责', max_length=400)
+    remarks = models.CharField('备注', max_length=400)
+    addTime = models.DateTimeField(auto_now_add=True, verbose_name="修改时间")
 
 
 class classesBindProfession(models.Model):

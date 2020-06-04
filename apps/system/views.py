@@ -130,6 +130,12 @@ def data(request):
                     if useraction == 'getStudentData':
                         return student.getStudentData(requestData)
 
+                    if useraction == 'getPostTrackData':
+                        return student.getPostTrackData(requestData)
+
+                    if useraction == 'deletePostTrack':
+                        return student.deletePostTrack(requestData)
+
                     if useraction == 'addEnterprise':
                         return enterprise.addEnterprise(requestData)
 
