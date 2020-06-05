@@ -411,8 +411,8 @@ def getWorkDirection(requestData):
         for postCount in studentPost:  # 统计该岗位男生人数
             postStudentCount = 0
             for student in studentList:
-                if postCount == student['postName'] and student['employmentStatus'] == '已安置' and student[
-                    'studentSex'] == '男生' and classesLevel == student['classesLevel']:
+                if postCount == student['postName'] and student['employmentStatus'] == '已安置' and \
+                        student['studentSex'] == '男生' and classesLevel == student['classesLevel']:
                     postStudentCount = postStudentCount + 1
             postStudentCountBoyData.append(postStudentCount)
         postBoyCountAndClassesLevel.update({classesLevel: postStudentCountBoyData})
