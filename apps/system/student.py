@@ -23,12 +23,58 @@ def addstudent(requestData):
     professionCode = requestData['classesAndProfesion'][0]
     classesCode = requestData['classesAndProfesion'][1]
     postDuty = requestData['postDuty']
+    remarks = requestData['remarks']
     try:
         enterpriseCode = requestData['enterpriseAndPostData'][0]
         postCode = requestData['enterpriseAndPostData'][1]
     except Exception:
         enterpriseCode = 0
         postCode = 0
+
+    # 检查学生数据是否改变，没有改变则不添加新的岗位追踪数据
+    student = list(studentManage.objects.filter(studentCode=studentCode, studentName=studentName,
+                                                enterpriseCode=enterpriseCode, postCode=postCode, postDuty=postDuty,
+                                                remarks=remarks).values())
+    isCreate = False
+    if len(student) <= 0:
+        isCreate = True
+
+    # 获取企业名称
+    enterprise = list(enterpriseManage.objects.filter(enterpriseCode=enterpriseCode).values())
+    enterpriseName = ''
+    if len(enterprise) > 0:
+        enterpriseName = enterprise[0]['enterpriseName']
+    # 获取岗位名称
+    post = list(enterprisePost.objects.filter(postCode=postCode).values())
+    postName = ''
+    if len(enterprise) > 0:
+        postName = post[0]['postName']
+
+    if len(list(studentPostTrack.objects.filter(studentCode=studentCode, studentName=studentName,
+                                                enterpriseName=enterpriseName,
+                                                postName=postName).values())) <= 0:
+        isCreate = True
+
+    # 判断是否创建或更新学生岗位追踪表
+    if employmentStatus == '已安置' and isCreate:
+        # 1.检查是否存在该学生的变化信息
+        studentPT = studentPostTrack.objects
+        index = 1000
+        # 正序查询
+        dataList = list(studentPT.values().order_by('trackCode'))
+        if len(dataList) <= 0:
+            index = 1000
+        else:
+            index = int(dataList[-1]['trackCode']) + 1
+
+        teacher = list(teacherData.objects.filter(user_name=requestData['username']).values())
+        recordTeacher = ''
+        if len(teacher) > 0:
+            recordTeacher = teacher[0]['teacher_name']
+        studentPT.create(trackCode=index, studentCode=studentCode, studentName=studentName,
+                         studentSalary=studentSalary,
+                         recordTeacher=recordTeacher,
+                         enterpriseName=enterpriseName, postName=postName, postDuty=postDuty, remarks=remarks)
 
     if studentManage.objects.filter(studentCode=studentCode).values():
         return JsonResponse({'ret': 1, 'data': '已有相同学号,请检查！'})
@@ -132,6 +178,7 @@ def editStudent(requestData):
         if len(teacher) > 0:
             recordTeacher = teacher[0]['teacher_name']
         studentPT.create(trackCode=index, studentCode=studentCode, studentName=studentName,
+                         studentSalary=studentSalary,
                          recordTeacher=recordTeacher,
                          enterpriseName=enterpriseName, postName=postName, postDuty=postDuty, remarks=remarks)
     if studentManage.objects \

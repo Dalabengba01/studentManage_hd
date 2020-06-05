@@ -110,6 +110,7 @@ class studentPostTrack(models.Model):
     enterpriseName = models.CharField('企业名称', max_length=30)
     postName = models.CharField('岗位名称', max_length=200)
     postDuty = models.CharField('岗位职责', max_length=400)
+    studentSalary = models.IntegerField('实习薪资')
     remarks = models.CharField('备注', max_length=400)
     addTime = models.DateTimeField(auto_now_add=True, verbose_name="修改时间")
 
