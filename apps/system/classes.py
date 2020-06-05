@@ -127,3 +127,95 @@ def getProfessionDataCascaderOptions(requestData):
     for i in professionManage.objects.values():
         data.append({'value': i['professionCode'], 'label': i['professionName']})
     return JsonResponse({'ret': 0, 'data': data})
+
+
+def getProfessionAndClassesLevelDataCascaderOptions(requestData):
+    """
+    获取专业数据及子菜单(班级)及其对应届数供学生页面联动菜单使用
+    :param requestData:
+    :return:
+    """
+
+    # 合成专业数据
+    global classesLevelData
+    professionData = []  # 临时存放专业数据
+    for i in professionManage.objects.values():
+        professionCode = i['professionCode']
+        professionName = i['professionName']
+        professionData.append({'value': str(professionCode), 'label': professionName, 'disabled': True})
+
+    # 提取绑定关系数据
+    bindData = []
+    for i in classesBindProfession.objects.values():
+        for ii in classesManage.objects.values():
+            if i['classesCode'] == ii['classesCode']:
+                classesCode = ii['classesCode']
+                classesName = ii['classesName']
+                classesLevel = ii['classesLevel']
+                professionCode = i['professionCode']
+                bindData.append(
+                    {'value': str(classesCode), 'label': classesName, 'classesLevel': classesLevel,
+                     'professionCode': str(professionCode)})
+
+    # 提取班级届数
+    classesLevelList = []
+    for i in bindData:
+        if i['classesLevel'] not in classesLevelList:
+            classesLevelList.append(i['classesLevel'])
+
+    # 合成班级数据
+    classesData = []
+    for i in professionData:
+        allClasses = []
+        for ii in bindData:
+            classesCode = ii['value']
+            classesName = ii['label']
+            classesLevel = ii['classesLevel']
+            if i['value'] == ii['professionCode']:
+                allClasses.append(
+                    {'professionCode': ii['professionCode'], 'value': str(classesCode), 'label': classesName,
+                     'classesLevel': classesLevel})
+
+        # 班级届数分类
+        for iii in classesLevelList:
+            classes = []
+            professionCode = 0
+            for iiii in allClasses:
+                if iii == iiii['classesLevel']:
+                    professionCode = iiii['professionCode']
+                    classes.append(iiii)
+            classesData.append(
+                {'professionCode': professionCode, 'value': iii, 'label': iii, 'children': classes})
+
+    # 合成最终数据
+    professionContainer = []  # 专业容器包含班级子容器 value:专业编号 label:专业名称
+    for i in professionData:
+        professions = []
+        for ii in classesData:
+            if str(ii['professionCode']) == str(i['value']):
+                i['disabled'] = False
+                professions.append(ii)
+        professionContainer.append(
+            {'value': i['value'], 'label': i['label'], 'children': professions, 'disabled': False})
+
+    return JsonResponse({'ret': 0, 'data': professionContainer})
+
+
+def getProfessionAndClassesDataCascaderOptions(requestData):
+    """
+    获取专业及包含届数
+    :param requestData:
+    :return:
+    """
+    data = []
+    for i in list(professionManage.objects.values()):
+        professions = []
+        for ii in list(classesBindProfession.objects.values()):
+            if str(i['professionCode']) == str(ii['professionCode']):
+                for iii in list(classesManage.objects.filter(classesCode=ii['classesCode']).values()):
+                    if str(iii['classesCode']) == str(ii['classesCode']):
+                        if {'value': iii['classesLevel'], 'label': iii['classesLevel']} not in professions:
+                            professions.append({'value': iii['classesLevel'], 'label': iii['classesLevel']})
+        data.append({'value': i['professionCode'], 'label': i['professionName'], 'disabled': False, 'children': professions})
+
+    return JsonResponse({'ret': 0, 'data': data})
