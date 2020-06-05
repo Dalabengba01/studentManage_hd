@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 
 from .models import studentManage, professionManage, \
-    classesManage, enterprisePost, enterpriseManage, classesBindProfession
+    classesManage, enterprisePost, classesBindProfession
 
 
 def getWorkAreaData(requestData):
