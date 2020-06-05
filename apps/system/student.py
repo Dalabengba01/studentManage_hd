@@ -1,5 +1,9 @@
+from datetime import datetime
+
 from django.core.paginator import Paginator
 from django.http import JsonResponse
+from django.utils import timezone
+
 from .models import professionManage, classesManage, classesBindProfession, \
     studentManage, enterprisePost, enterpriseManage, studentPostTrack, teacherData
 
@@ -50,11 +54,24 @@ def addstudent(requestData):
     if len(enterprise) > 0:
         postName = post[0]['postName']
 
+    # 如果数据不存在
     if len(list(studentPostTrack.objects.filter(studentCode=studentCode, studentName=studentName,
+                                                studentSalary=studentSalary,
                                                 enterpriseName=enterpriseName,
+                                                postDuty=postDuty,
+                                                remarks=remarks,
                                                 postName=postName).values())) <= 0:
         isCreate = True
-
+    else:
+        # 如果存在用日期排序获取最后一个查看是否有不同
+        postTrack = list(
+            studentPostTrack.objects.filter(studentCode=studentCode, studentName=studentName).values().order_by(
+                'addTime'))
+        if len(postTrack) > 0:
+            if studentSalary != postTrack[-1]['studentSalary'] or enterpriseName != postTrack[-1][
+                'enterpriseName'] or postDuty != postTrack[-1]['postDuty'] or \
+                    remarks != postTrack[-1]['remarks'] or postName != postTrack[-1]['postName']:
+                isCreate = True
     # 判断是否创建或更新学生岗位追踪表
     if employmentStatus == '已安置' and isCreate:
         # 1.检查是否存在该学生的变化信息
@@ -155,12 +172,24 @@ def editStudent(requestData):
     postName = ''
     if len(enterprise) > 0:
         postName = post[0]['postName']
-
+    # 如果数据不存在
     if len(list(studentPostTrack.objects.filter(studentCode=studentCode, studentName=studentName,
+                                                studentSalary=studentSalary,
                                                 enterpriseName=enterpriseName,
+                                                postDuty=postDuty,
+                                                remarks=remarks,
                                                 postName=postName).values())) <= 0:
         isCreate = True
-
+    else:
+        # 如果存在用日期排序获取最后一个查看是否有不同
+        postTrack = list(
+            studentPostTrack.objects.filter(studentCode=studentCode, studentName=studentName).values().order_by(
+                'addTime'))
+        if len(postTrack) > 0:
+            if studentSalary != postTrack[-1]['studentSalary'] or enterpriseName != postTrack[-1][
+                'enterpriseName'] or postDuty != postTrack[-1]['postDuty'] or \
+                    remarks != postTrack[-1]['remarks'] or postName != postTrack[-1]['postName']:
+                isCreate = True
     # 判断是否创建或更新学生岗位追踪表
     if employmentStatus == '已安置' and isCreate:
         # 1.检查是否存在该学生的变化信息
