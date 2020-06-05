@@ -249,7 +249,7 @@ def getStudentData(requestData):
     })
 
 
-def getProfessionAndClassesDataCascaderOptions(requestData):
+def getProfessionAndClassesCascaderOptions(requestData):
     """
     获取专业数据及子菜单(班级)供学生页面联动菜单使用
     :param requestData:

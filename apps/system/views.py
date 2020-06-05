@@ -121,8 +121,8 @@ def data(request):
                     if useraction == 'getProfessionAndClassesDataCascaderOptions':
                         return classes.getProfessionAndClassesDataCascaderOptions(requestData)
 
-                    if useraction == 'getProfessionAndClassesDataCascaderOptions':
-                        return student.getProfessionAndClassesDataCascaderOptions(requestData)
+                    if useraction == 'getProfessionAndClassesCascaderOptions':
+                        return student.getProfessionAndClassesCascaderOptions(requestData)
 
                     if useraction == 'getProfessionAndClassesLevelDataCascaderOptions':
                         return classes.getProfessionAndClassesLevelDataCascaderOptions(requestData)
