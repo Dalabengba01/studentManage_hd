@@ -1,8 +1,5 @@
-from datetime import datetime
-
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.utils import timezone
 
 from .models import professionManage, classesManage, classesBindProfession, \
     studentManage, enterprisePost, enterpriseManage, studentPostTrack, teacherData
