@@ -185,7 +185,7 @@ def getProfessionAndClassesLevelDataCascaderOptions(requestData):
                     professionCode = iiii['professionCode']
                     classes.append(iiii)
             classesData.append(
-                {'professionCode': professionCode, 'value': iii, 'label': iii, 'children': classes})
+                {'professionCode': professionCode, 'value': iii, 'label': iii + '届', 'children': classes})
 
     # 合成最终数据
     professionContainer = []  # 专业容器包含班级子容器 value:专业编号 label:专业名称
@@ -214,8 +214,8 @@ def getProfessionAndClassesDataCascaderOptions(requestData):
             if str(i['professionCode']) == str(ii['professionCode']):
                 for iii in list(classesManage.objects.filter(classesCode=ii['classesCode']).values()):
                     if str(iii['classesCode']) == str(ii['classesCode']):
-                        if {'value': iii['classesLevel'], 'label': iii['classesLevel']} not in professions:
-                            professions.append({'value': iii['classesLevel'], 'label': iii['classesLevel']})
+                        if {'value': iii['classesLevel'], 'label': iii['classesLevel'] + '届'} not in professions:
+                            professions.append({'value': iii['classesLevel'], 'label': iii['classesLevel'] + '届'})
         data.append({'value': i['professionCode'], 'label': i['professionName'], 'disabled': False, 'children': professions})
 
     return JsonResponse({'ret': 0, 'data': data})
