@@ -193,16 +193,14 @@ def getSalaryData(requestData):
                     classesManage.objects.filter(classesCode=i['classesCode'], classesLevel=classesLevel).values()):
                 if i['classesCode'] == ii['classesCode']:
                     classesData.append(str(i['classesCode']))
-        studentBaseData = [i for i in list(
-            studentManage.objects.filter(professionCode=professionCode, employmentStatus='已安置').values()) if
+        salaryList = [i['studentSalary'] for i in list(
+            studentManage.objects.filter(professionCode=professionCode, employmentStatus='已安置').values().order_by('studentSalary')) if
                            i['classesCode'] in classesData]  # 获取学生基本数据并绑定专业及班级
 
-        salaryList = [i['studentSalary'] for i in studentBaseData]
         # 专业平均工资
         salary = 0
         for i in salaryList:
             salary = salary + int(i)
-
         try:
             salary = salary / len(salaryList)
         except Exception:
@@ -219,7 +217,7 @@ def getSalaryData(requestData):
         except Exception:
             minSalary = 0.0
 
-        nameList = [list(professionManage.objects.filter(professionCode=professionCode).values())[0]['professionName']]
+        nameList = ['平均工资', '最高工资', '最低薪资']
         valueList = [format(salary, '.2f'), format(maxSalary, '.2f'), format(minSalary, '.2f')]
 
         return JsonResponse({'ret': 0, 'nameList': nameList, 'valueList': valueList})
@@ -232,12 +230,11 @@ def getSalaryData(requestData):
         classesData = []
         for i in list(classesManage.objects.filter(classesCode=classesCode, classesLevel=classesLevel).values()):
             classesData.append(str(i['classesCode']))
-        studentBaseData = [i for i in list(
-            studentManage.objects.filter(professionCode=professionCode, classesCode=classesCode,
-                                         employmentStatus='已安置').values()) if
-                           i['classesCode'] in classesData]  # 获取学生基本数据并绑定专业及班级
-
-        salaryList = [i['studentSalary'] for i in studentBaseData]
+        salaryList = [i['studentSalary'] for i in list(studentManage
+                             .objects
+                             .filter(professionCode=professionCode, classesCode=classesCode,
+                                     employmentStatus='已安置')
+                             .values().order_by('studentSalary')) if i['classesCode'] in classesData]  # 获取学生基本数据并绑定专业及班级
 
         # 专业平均工资
         salary = 0
@@ -260,7 +257,7 @@ def getSalaryData(requestData):
         except Exception:
             minSalary = 0.0
 
-        nameList = [list(classesManage.objects.filter(classesCode=classesCode).values())[0]['classesName']]
+        nameList = ['平均工资', '最高工资', '最低薪资']
         valueList = [format(salary, '.2f'), format(maxSalary, '.2f'), format(minSalary, '.2f')]
 
         return JsonResponse({'ret': 0, 'nameList': nameList, 'valueList': valueList})
