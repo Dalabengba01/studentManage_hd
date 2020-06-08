@@ -3,8 +3,6 @@ import os
 from django.http import JsonResponse
 import xlrd
 
-from .models import studentManage, professionManage, classesManage
-
 
 def inputStudentData():
     """
