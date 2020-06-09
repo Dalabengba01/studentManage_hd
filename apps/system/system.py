@@ -1,8 +1,9 @@
 import time
+from datetime import datetime
 
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from .models import teacherData, systemLogs
+from .models import teacherData, systemLogs, editLocked
 
 
 # 系统初始化
@@ -196,3 +197,43 @@ def deleteSystemLogsData(requestData):
         return JsonResponse({'ret': 0, 'data': '删除系统操作日志成功！'})
     else:
         return JsonResponse({'ret': 1, 'data': '删除系统操作日志失败，请稍后重试！'})
+
+
+def systemEditLocked(requestData):
+    """
+    编辑类功能实现编辑锁
+    :return:
+    """
+    userAction = requestData['type']
+    userName = requestData['username']
+    code = requestData['code']
+    obj = editLocked.objects
+    # 正序查询
+    dataList = list(obj.values().order_by('lockedCode'))
+    if len(dataList) <= 0:
+        index = 1000
+    else:
+        index = int(dataList[-1]['lockedCode']) + 1
+
+    # 如果没有此活动且对应的code则创建
+    lockeList = list(obj.filter(userAction=userAction, code=code).values())
+    if len(lockeList) <= 0:
+        obj.create(lockedCode=index, userAction=userAction, userName=userName, code=code)
+        return JsonResponse({'ret': 0})
+    else:
+        # 否则判断时间是否过期
+        lockedTime = datetime.strptime(str(lockeList[0]['lockedTime'])[:19], "%Y-%m-%d %H:%M:%S")
+        nowTime = datetime.strptime(str(datetime.now())[:19], "%Y-%m-%d %H:%M:%S")
+        outTime = int((nowTime - lockedTime).seconds / 60)
+        if outTime > 5:
+            # 超时的信息可以删除
+            obj.filter(userAction=userAction, code=code).delete()
+            return JsonResponse({'ret': 0})
+        else:
+            # 没超时就判断本次请求是不是和本条记录的userName相同
+            data = list(obj.filter(userAction=userAction, userName=userName, code=code).values())
+            if len(data) > 0 and userName == data[0]['userName']:
+                return JsonResponse({'ret': 0})
+            else:
+                teacher = list(teacherData.objects.filter(user_name=lockeList[0]['userName']).values())
+                return JsonResponse({'ret': 1, 'status': False, 'data': '此条信息教师 ' + teacher[0]['teacher_name'] + ' 正在编辑，请稍后重试或者与其协商!'})

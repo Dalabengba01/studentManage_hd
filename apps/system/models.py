@@ -150,3 +150,18 @@ class systemLogs(models.Model):
     operationType = models.CharField('操作类型', max_length=100)
     dataRecord = models.TextField('数据记录', max_length=2000)
     addTime = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
+
+
+class editLocked(models.Model):
+    """信息编辑锁记录"""
+
+    class Meta:
+        verbose_name = '信息编辑锁记录'
+        verbose_name_plural = verbose_name
+
+    lockedCode = models.IntegerField('编辑锁编号', primary_key=True)
+    userAction = models.CharField('用户活动', max_length=30)
+    userName = models.CharField('用户名称', max_length=30)
+    code = models.IntegerField('数据标识')  # 可以是学号，专业编号等
+    lockedTime = models.DateTimeField(auto_now_add=True, verbose_name="锁定时间")
+

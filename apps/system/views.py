@@ -202,6 +202,9 @@ def data(request):
                     if useraction == 'deleteSystemLogsData':
                         return system.deleteSystemLogsData(requestData)
 
+                    if useraction == 'systemEditLocked':
+                        return system.systemEditLocked(requestData)
+
                 else:
                     return JsonResponse({'ret': 1, 'data': '用户未登录！'})
         else:
