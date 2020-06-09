@@ -266,6 +266,9 @@ def getStudentData(requestData):
     if queryType == 'studentSex' and keyWord != '':
         subData0 = list(obj.filter(studentSex__contains=keyWord).values())
 
+    if queryType == 'studentNativePlace' and keyWord != '':
+        subData0 = list(obj.filter(studentNativePlace__contains=keyWord).values())
+
     if queryType == 'classesName' and keyWord != '':
         # 1.查询此班级的编号
         classesCode = str(list(classesManage.objects.filter(classesName__contains=keyWord).values())[0]['classesCode'])
