@@ -71,34 +71,6 @@ def getexportStudentData(request):
                 i.update({'enterpriseName': '未绑定', 'enterpriseAddress': '未绑定', 'enterprisePhone': '未绑定'})
         userList.append(i)
 
-    # {
-    #     'studentCode': '30317217',
-    #     'studentName': '方言',
-    #     'studentSex': '男生',
-    #     'studentNativePlace': '陕西省-安康市',
-    #     'studentPhone': '11111111111',
-    #     'employmentStatus': '已安置',
-    #     'studentSalary': 3000,
-    #     'teacherName': '王斌',
-    #     'teacherPhone': '11111111111',
-    #     'studentStatus': '良好',
-    #     'postCode': '1003',
-    #     'enterpriseCode': '1002',
-    #     'postDuty': '软件测试',
-    #     'professionCode': '1000',
-    #     'classesCode': '1000',
-    #     'remarks': '1',
-    #     'addTime': datetime.datetime(),
-    #     'studentLevel': '2018',
-    #     'toProfession': '云计算技术与运用',
-    #     'toClasses': '云算3182',
-    #     'postName': '软件测试',
-    #     'postAddress': '新疆维吾尔自治区-阿勒泰地区',
-    #     'enterpriseName': '飞象互娱科技',
-    #     'enterpriseAddress': '新疆维吾尔自治区阿勒泰',
-    #     'enterprisePhone': '01085518557'
-    # }
-
     excelData = []
     excelTitle = ''
     if searchType == '全部':
