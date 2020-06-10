@@ -271,14 +271,23 @@ def getStudentData(requestData):
 
     if queryType == 'classesName' and keyWord != '':
         # 1.查询此班级的编号
-        classesCode = str(list(classesManage.objects.filter(classesName__contains=keyWord).values())[0]['classesCode'])
+        classes = list(classesManage.objects.filter(classesName__contains=keyWord).values())
+        classesCodeList = []
+        for i in classes:
+            classesCode = i['classesCode']
+            if i not in classesCodeList:
+                classesCodeList.append(classesCode)
+
         # 2.利用此编号查询学生绑定班级专业表
-        bindCode = list(obj.filter(classesCode=classesCode).values())
+        bindCode = []
+        for i in classesCodeList:
+            bindCode.extend(list(obj.filter(classesCode=i).values()))
+
         # 3.存储有此班级编号的学号
-        studentCodeList = [str(i['studentCode']) for i in bindCode if str(i['classesCode']) == str(classesCode)]
+        studentCodeList = [str(i['studentCode']) for i in bindCode]
         studentData = []
         for i in studentCodeList:
-            studentData.append(list(obj.filter(studentCode=i).values())[0])
+            studentData.extend(list(obj.filter(studentCode=i).values()))
         subData0 = studentData
 
     userList = []
