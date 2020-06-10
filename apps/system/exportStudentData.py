@@ -137,18 +137,6 @@ def getexportStudentData(request):
         w.write(1, 15, "指导老师电话", style)
         w.write(1, 16, "学生状态", style)
         w.write(1, 17, "创建时间", style)
-        w.write(1, 18, "1月回访情况", style)
-        w.write(1, 19, "2月回访情况", style)
-        w.write(1, 20, "3月回访情况", style)
-        w.write(1, 21, "4月回访情况", style)
-        w.write(1, 22, "5月回访情况", style)
-        w.write(1, 23, "6月回访情况", style)
-        w.write(1, 24, "7月回访情况", style)
-        w.write(1, 25, "8月回访情况", style)
-        w.write(1, 26, "9月回访情况", style)
-        w.write(1, 27, "10月回访情况", style)
-        w.write(1, 28, "11月回访情况", style)
-        w.write(1, 29, "12月回访情况", style)
 
         # 写入数据(第一行是标题，第二行表头，第三行开始写数据)
         excel_row = 2
