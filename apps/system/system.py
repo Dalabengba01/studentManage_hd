@@ -50,7 +50,7 @@ def userLogout(requestData):
     for i in userList:
         if i['user_name'] == username:
             teacherData.objects.filter(user_name=username).update(is_login=False)
-            return JsonResponse({'ret': 0, 'data': '账号已退出系统登录！'})
+            return JsonResponse({'ret': 0, 'data': '账号已退出系统，请重新登录！'})
 
 
 # 用户密码修改

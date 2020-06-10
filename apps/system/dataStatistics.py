@@ -178,7 +178,7 @@ def getUnemployedRateData(requestData):
 
 def getSalaryData(requestData):
     """
-    获取班级专业平均工资数据
+    获取班级专业平均薪资数据
     :return:
     """
     type = requestData['queryType']
@@ -217,7 +217,7 @@ def getSalaryData(requestData):
         except Exception:
             minSalary = 0.0
 
-        nameList = ['平均工资', '最高工资', '最低薪资']
+        nameList = ['平均薪资', '最高薪资', '最低薪资']
         valueList = [format(salary, '.2f'), format(maxSalary, '.2f'), format(minSalary, '.2f')]
 
         return JsonResponse({'ret': 0, 'nameList': nameList, 'valueList': valueList})
@@ -257,7 +257,7 @@ def getSalaryData(requestData):
         except Exception:
             minSalary = 0.0
 
-        nameList = ['平均工资', '最高工资', '最低薪资']
+        nameList = ['平均薪资', '最高薪资', '最低薪资']
         valueList = [format(salary, '.2f'), format(maxSalary, '.2f'), format(minSalary, '.2f')]
 
         return JsonResponse({'ret': 0, 'nameList': nameList, 'valueList': valueList})
