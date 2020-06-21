@@ -2,7 +2,7 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from .models import professionManage, classesManage, classesBindProfession, \
     studentManage
-from .tools import getIndex
+from utils.tools import getIndex
 
 
 def addProfession(requestData):

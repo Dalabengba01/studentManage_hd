@@ -1,7 +1,7 @@
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from .models import professionManage, classesManage, classesBindProfession, studentManage
-from .tools import getIndex
+from utils.tools import getIndex
 
 
 def addClasses(requestData):
@@ -67,39 +67,31 @@ def getclassesData(requestData):
     keyWord = queryData['keyWord']  # 查询的关键词
     pageNum = queryData['pageNum']  # 当前页数
     pageSize = queryData['pageSize']  # 一页多少数据
-
+    classObj = classesManage.objects
     # 提取班级人数
     classData = []
-    for i in classesManage.objects.values():
-        classesHumanNumData = []
-        for ii in studentManage.objects.values():
-            if str(i['classesCode']) == str(ii['classesCode']):
-                classesHumanNumData.append({'classesCode': i['classesCode']})
-        classData.append({'classesCode': i['classesCode'], 'classesHumanNumData': classesHumanNumData})
+    for i in classObj.values():
+        classData.append({'classesCode': i['classesCode'], 'classesHumanNumData': [{'classesCode': i['classesCode']} for ii in studentManage.objects.values() if str(i['classesCode']) == str(ii['classesCode'])]})
 
     # 合并到源数据
     classContainer = []
-    for i in classesManage.objects.filter(classesName__contains=keyWord).values():
+    for i in classObj.filter(classesName__contains=keyWord).values():
         classesCode = i['classesCode']
         classesLevel = i['classesLevel']
         classesName = i['classesName']
         toProfession = '未绑定'
+        addTime = i['addTime']
         for iii in classesBindProfession.objects.filter(classesCode=classesCode).values():
             for iiii in professionManage.objects.filter(professionCode=iii['professionCode']).values():
                 toProfession = iiii['professionName']
-        toProfession = toProfession
-        addTime = i['addTime']
         hh = {'classesCode': classesCode, 'classesLevel': classesLevel, 'classesName': classesName,
               'toProfession': toProfession, 'addTime': addTime}
         for ii in classData:
             if str(i['classesCode']) == str(ii['classesCode']):
-                classesHumanNum = len(ii['classesHumanNumData'])
-                hh.update({'classesHumanNum': classesHumanNum})
+                hh.update({'classesHumanNum': len(ii['classesHumanNumData'])})
         classContainer.append(hh)
 
-    userList = classContainer
-
-    paginator = Paginator(userList, pageSize)  # 每页显示多少数据
+    paginator = Paginator(classContainer, pageSize)  # 每页显示多少数据
     total = paginator.count  # 总数据量
     # sumPageNum = paginator.num_pages # 总页数
     data = paginator.page(pageNum).object_list  # 某一页的数据
