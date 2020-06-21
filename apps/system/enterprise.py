@@ -2,6 +2,7 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 
 from .models import enterpriseManage, enterprisePost, postBindentErprise, studentManage
+from .tools import getIndex
 
 
 def addEnterprise(requestData):
@@ -21,13 +22,7 @@ def addEnterprise(requestData):
     if enterpriseManage.objects.filter(enterpriseName=enterpriseName).values():
         return JsonResponse({'ret': 1, 'data': '已有相同名称企业,请重命名！'})
     else:
-        index = 1000
-        # 正序查询
-        dataList = list(enterpriseManage.objects.values().order_by('enterpriseCode'))
-        if len(dataList) <= 0:
-            index = 1000
-        else:
-            index = int(dataList[-1]['enterpriseCode']) + 1
+        index = getIndex(enterpriseManage, 'enterpriseCode')
         if enterpriseManage.objects.create(enterpriseCode=index, enterpriseName=enterpriseName,
                                            enterpriseScale=enterpriseScale, enterpriseContacts=enterpriseContacts,
                                            enterprisePhone=enterprisePhone, enterpriseAddress=enterpriseAddress,
@@ -139,13 +134,7 @@ def addPost(requestData):
     bindEnterprise = requestData['bindEnterprise'][0]
 
     # 1.企业岗位数据库写入岗位数据
-    index = 1000
-    # 正序查询
-    dataList = list(enterprisePost.objects.values().order_by('postCode'))
-    if len(dataList) <= 0:
-        index = 1000
-    else:
-        index = int(dataList[-1]['postCode']) + 1
+    index = getIndex(enterprisePost, 'postCode')
     if enterprisePost.objects.create(postCode=index, postName=postName, recruitCount=recruitCount,
                                      postAddress=postAddress,
                                      salaryTreatment=salaryTreatment) \

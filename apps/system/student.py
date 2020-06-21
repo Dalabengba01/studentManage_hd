@@ -3,6 +3,7 @@ from django.http import JsonResponse
 
 from .models import professionManage, classesManage, classesBindProfession, \
     studentManage, enterprisePost, enterpriseManage, studentPostTrack, teacherData
+from .tools import getIndex
 
 
 def addstudent(requestData):
@@ -72,23 +73,16 @@ def addstudent(requestData):
     # 判断是否创建或更新学生岗位追踪表
     if employmentStatus == '已安置' and isCreate:
         # 1.检查是否存在该学生的变化信息
-        studentPT = studentPostTrack.objects
-        index = 1000
-        # 正序查询
-        dataList = list(studentPT.values().order_by('trackCode'))
-        if len(dataList) <= 0:
-            index = 1000
-        else:
-            index = int(dataList[-1]['trackCode']) + 1
-
         teacher = list(teacherData.objects.filter(user_name=requestData['username']).values())
         recordTeacher = ''
         if len(teacher) > 0:
             recordTeacher = teacher[0]['teacher_name']
-        studentPT.create(trackCode=index, studentCode=studentCode, studentName=studentName,
-                         studentSalary=studentSalary,
-                         recordTeacher=recordTeacher,
-                         enterpriseName=enterpriseName, postName=postName, postDuty=postDuty, remarks=remarks)
+        index = getIndex(studentPostTrack, 'trackCode')
+        studentPostTrack.objects.create(trackCode=index, studentCode=studentCode, studentName=studentName,
+                                        studentSalary=studentSalary,
+                                        recordTeacher=recordTeacher,
+                                        enterpriseName=enterpriseName, postName=postName, postDuty=postDuty,
+                                        remarks=remarks)
 
     if studentManage.objects.filter(studentCode=studentCode).values():
         return JsonResponse({'ret': 1, 'data': '已有相同学号,请检查！'})
@@ -190,23 +184,16 @@ def editStudent(requestData):
     # 判断是否创建或更新学生岗位追踪表
     if employmentStatus == '已安置' and isCreate:
         # 1.检查是否存在该学生的变化信息
-        studentPT = studentPostTrack.objects
-        index = 1000
-        # 正序查询
-        dataList = list(studentPT.values().order_by('trackCode'))
-        if len(dataList) <= 0:
-            index = 1000
-        else:
-            index = int(dataList[-1]['trackCode']) + 1
-
+        index = getIndex(studentPostTrack, 'trackCode')
         teacher = list(teacherData.objects.filter(user_name=requestData['username']).values())
         recordTeacher = ''
         if len(teacher) > 0:
             recordTeacher = teacher[0]['teacher_name']
-        studentPT.create(trackCode=index, studentCode=studentCode, studentName=studentName,
-                         studentSalary=studentSalary,
-                         recordTeacher=recordTeacher,
-                         enterpriseName=enterpriseName, postName=postName, postDuty=postDuty, remarks=remarks)
+        studentPostTrack.objects.create(trackCode=index, studentCode=studentCode, studentName=studentName,
+                                        studentSalary=studentSalary,
+                                        recordTeacher=recordTeacher,
+                                        enterpriseName=enterpriseName, postName=postName, postDuty=postDuty,
+                                        remarks=remarks)
     if studentManage.objects \
             .filter(studentCode=studentCode) \
             .update(studentName=studentName, studentSex=studentSex, studentNativePlace=studentNativePlace,
