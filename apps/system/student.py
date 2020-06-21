@@ -222,7 +222,6 @@ def getStudentData(requestData):
     searchType = queryData['searchType']  # 显示数据类型(默认全部数据)
 
     # 创建新的列表供后续功能操作
-    subData0 = []
     userList = []
     s_obj = studentManage.objects
     c_obj = classesManage.objects
@@ -240,10 +239,8 @@ def getStudentData(requestData):
         subData0 = list(s_obj.filter(**search).values())
 
     if queryType == 'classesName' and keyWord != '':
-        # 1.查询此班级的编号
-        classes = list(c_obj.filter(classesName__icontains=keyWord).values())
-        # 获取班级编号并set去重
-        classesCodeList = set([i['classesCode'] for i in classes])
+        # 1.查询此班级的编号,获取班级编号并set去重
+        classesCodeList = set([i['classesCode'] for i in list(c_obj.filter(classesName__icontains=keyWord).values())])
         # 2.利用此编号查询学生绑定班级专业表
         bindCode = []
         for i in classesCodeList:
