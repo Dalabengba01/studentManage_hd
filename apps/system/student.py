@@ -253,7 +253,6 @@ def getStudentData(requestData):
         subData0 = studentData
     # 自定义分页(提高系统运行速度)
     myData = listSplit(subData0, pageSize, pageNum)
-    print(myData)
     for i in myData['currentData']:
         # 获取所属专业,班级名称，班级届数并合并到学生信息列表中
         for ii in s_obj.filter(studentCode=i['studentCode']).values():

@@ -2,7 +2,7 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from .models import professionManage, classesManage, classesBindProfession, \
     studentManage
-from utils.tools import getIndex
+from utils.tools import getIndex, listSplit
 
 
 def addProfession(requestData):
@@ -85,8 +85,10 @@ def getProfessionData(requestData):
         professionData.append({'professionCode': i['professionCode'], 'classesData': hh})
 
     professionContainer = []
-    for i in professionManage.objects.filter().values():
-        classesData = {}
+    # 自定义分页(提高系统运行速度)
+    professions = list(professionManage.objects.filter().values())
+    myData = listSplit(professions, pageSize, pageNum)
+    for i in myData['currentData']:
         hh = []
         professionCode = i['professionCode']
         professionName = i['professionName']
@@ -111,14 +113,9 @@ def getProfessionData(requestData):
         for ii in i:
             userList.append(ii)
 
-    paginator = Paginator(userList, pageSize)  # 每页显示多少数据
-    total = paginator.count  # 总数据量
-    # sumPageNum = paginator.num_pages # 总页数
-    data = paginator.page(pageNum).object_list  # 某一页的数据
-
     return JsonResponse({
         'ret': 0,
-        'data': data,
+        'data': userList,
         'pageNum': pageNum,
-        'total': total,
+        'total': myData['dataSum'],
     })

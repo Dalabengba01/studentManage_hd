@@ -2,7 +2,7 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 
 from .models import enterpriseManage, enterprisePost, postBindentErprise, studentManage
-from utils.tools import getIndex
+from utils.tools import getIndex, listSplit
 
 
 def addEnterprise(requestData):
@@ -195,37 +195,32 @@ def getPostData(requestData):
     queryType = requestData['queryType']  # 查询类型
 
     postData = []
-    if keyWord != '' and queryType == 'postName':
-        postData = list(enterprisePost.objects.filter(postName__contains=keyWord).values())
+    postList = []
+    p_obj = enterprisePost.objects
+    postList = list(p_obj.values())
+    # 岗位属性筛选
+    if queryType in ['postName'] and keyWord != '':
+        posts = list(p_obj.filter(postName__icontains=keyWord).values())
+        postList = listSplit(posts, pageSize, pageNum)['currentData']
+    # 数据合成
+    for post in postList:
+        for bind in postBindentErprise.objects.filter(postCode=post['postCode']).values():
+            for enterprise in enterpriseManage.objects.filter(enterpriseCode=bind['enterpriseCode']).values():
+                post.update({'toEnterprise': enterprise['enterpriseName']})
+        postData.append(post)
+    # 岗位属性筛选
+    if queryType in ['enterpriseName'] and keyWord != '':
+        postData = [i for i in postData if i['toEnterprise' if queryType == 'enterpriseName' else queryType].lower().find(keyWord.lower()) != -1]
+        myData = listSplit(postData, pageSize, pageNum)
     else:
-        postData = list(enterprisePost.objects.filter().values())
+        myData = listSplit(postData, pageSize, pageNum)
 
-    # 获取该岗位属于哪个公司toEnterprise
-    postDataList = []
-    for i in postData:
-        for ii in list(enterpriseManage.objects.filter(
-                enterpriseCode=list(postBindentErprise.objects.filter(postCode=i['postCode']).values())[0][
-                    'enterpriseCode']).values()):
-            i.update({'toEnterprise': ii['enterpriseName']})
-            break
-        postDataList.append(i)
-    paginator = Paginator(postDataList, pageSize)  # 每页显示多少数据
-
-    if keyWord != '' and queryType == 'enterpriseName':
-        postDataList1 = []
-        for i in postDataList:
-            if keyWord in i['toEnterprise']:
-                postDataList1.append(i)
-        paginator = Paginator(postDataList1, pageSize)  # 每页显示多少数据
-
-    total = paginator.count  # 总数据量
-    data = paginator.page(pageNum).object_list  # 某一页的数据
 
     return JsonResponse({
         'ret': 0,
-        'data': data,
+        'data': myData['currentData'],
         'pageNum': pageNum,
-        'total': total,
+        'total': myData['dataSum'],
     })
 
 

@@ -1,7 +1,7 @@
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from .models import professionManage, classesManage, classesBindProfession, studentManage
-from utils.tools import getIndex
+from utils.tools import getIndex, listSplit
 
 
 def addClasses(requestData):
@@ -68,39 +68,23 @@ def getclassesData(requestData):
     pageNum = queryData['pageNum']  # 当前页数
     pageSize = queryData['pageSize']  # 一页多少数据
     classObj = classesManage.objects
-    # 提取班级人数
-    classData = []
-    for i in classObj.values():
-        classData.append({'classesCode': i['classesCode'], 'classesHumanNumData': [{'classesCode': i['classesCode']} for ii in studentManage.objects.values() if str(i['classesCode']) == str(ii['classesCode'])]})
 
-    # 合并到源数据
-    classContainer = []
-    for i in classObj.filter(classesName__contains=keyWord).values():
-        classesCode = i['classesCode']
-        classesLevel = i['classesLevel']
-        classesName = i['classesName']
-        toProfession = '未绑定'
-        addTime = i['addTime']
-        for iii in classesBindProfession.objects.filter(classesCode=classesCode).values():
-            for iiii in professionManage.objects.filter(professionCode=iii['professionCode']).values():
-                toProfession = iiii['professionName']
-        hh = {'classesCode': classesCode, 'classesLevel': classesLevel, 'classesName': classesName,
-              'toProfession': toProfession, 'addTime': addTime}
-        for ii in classData:
-            if str(i['classesCode']) == str(ii['classesCode']):
-                hh.update({'classesHumanNum': len(ii['classesHumanNumData'])})
-        classContainer.append(hh)
-
-    paginator = Paginator(classContainer, pageSize)  # 每页显示多少数据
-    total = paginator.count  # 总数据量
-    # sumPageNum = paginator.num_pages # 总页数
-    data = paginator.page(pageNum).object_list  # 某一页的数据
+    classesData = []
+    classesList = list(classObj.filter(classesName__contains=keyWord).values())
+    myData = listSplit(classesList, pageSize, pageNum)  # 自定义分页(提高系统运行速度)
+    for classes in myData['currentData']:
+        for bind in classesBindProfession.objects.filter(classesCode=classes['classesCode']).values():
+            for profession in professionManage.objects.filter(professionCode=bind['professionCode']).values():
+                classes.update({'toProfession': profession['professionName']})
+            studentCount = studentManage.objects.filter(classesCode=classes['classesCode']).count()
+            classes.update({'classesHumanNum': studentCount})
+        classesData.append(classes)
 
     return JsonResponse({
         'ret': 0,
-        'data': data,
+        'data': classesData,
         'pageNum': pageNum,
-        'total': total,
+        'total': myData['dataSum'],
     })
 
 
@@ -203,6 +187,7 @@ def getProfessionAndClassesDataCascaderOptions(requestData):
                     if str(iii['classesCode']) == str(ii['classesCode']):
                         if {'value': iii['classesLevel'], 'label': iii['classesLevel'] + '届'} not in professions:
                             professions.append({'value': iii['classesLevel'], 'label': iii['classesLevel'] + '届'})
-        data.append({'value': i['professionCode'], 'label': i['professionName'], 'disabled': False, 'children': professions})
+        data.append(
+            {'value': i['professionCode'], 'label': i['professionName'], 'disabled': False, 'children': professions})
 
     return JsonResponse({'ret': 0, 'data': data})
