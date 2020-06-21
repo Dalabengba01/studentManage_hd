@@ -2,7 +2,7 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from .models import professionManage, classesManage, classesBindProfession, \
     studentManage, enterprisePost, enterpriseManage, studentPostTrack, teacherData
-from utils.tools import getIndex
+from utils.tools import getIndex, listSplit
 
 
 def addstudent(requestData):
@@ -251,8 +251,10 @@ def getStudentData(requestData):
         for i in studentCodeList:
             studentData.extend(list(s_obj.filter(studentCode=i).values()))
         subData0 = studentData
-
-    for i in subData0:
+    # 自定义分页(提高系统运行速度)
+    myData = listSplit(subData0, pageSize, pageNum)
+    print(myData)
+    for i in myData['currentData']:
         # 获取所属专业,班级名称，班级届数并合并到学生信息列表中
         for ii in s_obj.filter(studentCode=i['studentCode']).values():
             if ii['classesCode'] != '0':
@@ -286,15 +288,11 @@ def getStudentData(requestData):
                 i.update({'enterpriseName': '未绑定', 'enterpriseAddress': '未绑定', 'enterprisePhone': '未绑定'})
         userList.append(i)
 
-    paginator = Paginator(userList, pageSize)  # 每页显示多少数据
-    total = paginator.count  # 总数据量
-    data = paginator.page(pageNum).object_list  # 某一页的数据
-
     return JsonResponse({
         'ret': 0,
-        'data': data,
+        'data': userList,
         'pageNum': pageNum,
-        'total': total,
+        'total': myData['dataSum'],
     })
 
 
