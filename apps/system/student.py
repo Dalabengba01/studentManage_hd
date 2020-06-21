@@ -224,44 +224,45 @@ def getStudentData(requestData):
     # 创建新的列表供后续功能操作
     subData0 = []
     userList = []
-    obj = studentManage.objects
+    s_obj = studentManage.objects
+    c_obj = classesManage.objects
     # 学生就业状态筛选
     if queryType == 'noSearch' and keyWord == '' and searchType in ['参军', '待安置', '已安置', '拟升学']:
-        subData0 = list(obj.filter(employmentStatus=searchType).values())
+        subData0 = list(s_obj.filter(employmentStatus=searchType).values())
     else:
-        subData0 = list(obj.filter().values())
+        subData0 = list(s_obj.filter().values())
 
     # 学生属性筛选
     if queryType in ['studentCode', 'studentName', 'studentSex', 'studentNativePlace'] and keyWord != '':
         search = {}
         key = queryType + '__icontains'
         search[key] = keyWord
-        subData0 = list(obj.filter(**search).values())
+        subData0 = list(s_obj.filter(**search).values())
 
     if queryType == 'classesName' and keyWord != '':
         # 1.查询此班级的编号
-        classes = list(classesManage.objects.filter(classesName__icontains=keyWord).values())
+        classes = list(c_obj.filter(classesName__icontains=keyWord).values())
         # 获取班级编号并set去重
         classesCodeList = set([i['classesCode'] for i in classes])
         # 2.利用此编号查询学生绑定班级专业表
         bindCode = []
         for i in classesCodeList:
-            bindCode.extend(list(obj.filter(classesCode=i).values()))
+            bindCode.extend(list(s_obj.filter(classesCode=i).values()))
         # 3.存储有此班级编号的学号
         studentCodeList = [str(i['studentCode']) for i in bindCode]
         studentData = []
         for i in studentCodeList:
-            studentData.extend(list(obj.filter(studentCode=i).values()))
+            studentData.extend(list(s_obj.filter(studentCode=i).values()))
         subData0 = studentData
 
     for i in subData0:
         # 获取所属专业,班级名称，班级届数并合并到学生信息列表中
-        for ii in obj.filter(studentCode=i['studentCode']).values():
+        for ii in s_obj.filter(studentCode=i['studentCode']).values():
             if ii['classesCode'] != '0':
                 studentLevel = ''
                 toClasses = ''
                 toProfession = ''
-                for iii in classesManage.objects.filter(classesCode=ii['classesCode']).values():
+                for iii in c_obj.filter(classesCode=ii['classesCode']).values():
                     studentLevel = iii['classesLevel']
                     toClasses = iii['classesName']
                 for iiii in professionManage.objects.filter(professionCode=ii['professionCode']).values():
@@ -271,7 +272,7 @@ def getStudentData(requestData):
                 i.update({'studentLevel': '未绑定', 'toProfession': '未绑定', 'toClasses': '未绑定'})
 
         # 获取岗位信息和企业信息
-        for studentBindData in list(obj.filter(studentCode=i['studentCode']).values()):
+        for studentBindData in list(s_obj.filter(studentCode=i['studentCode']).values()):
             if studentBindData['postCode'] != '0':
                 for postData in list(enterprisePost.objects.filter(postCode=studentBindData['postCode']).values()):
                     i.update({'postName': postData['postName'], 'postAddress': postData['postAddress']})
