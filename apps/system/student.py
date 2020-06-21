@@ -234,13 +234,13 @@ def getStudentData(requestData):
     # 学生属性筛选
     if queryType in ['studentCode', 'studentName', 'studentSex', 'studentNativePlace'] and keyWord != '':
         search = {}
-        key = queryType + '__contains'
+        key = queryType + '__icontains'
         search[key] = keyWord
         subData0 = list(obj.filter(**search).values())
 
     if queryType == 'classesName' and keyWord != '':
         # 1.查询此班级的编号
-        classes = list(classesManage.objects.filter(classesName__contains=keyWord).values())
+        classes = list(classesManage.objects.filter(classesName__icontains=keyWord).values())
         # 获取班级编号并set去重
         classesCodeList = set([i['classesCode'] for i in classes])
         # 2.利用此编号查询学生绑定班级专业表
