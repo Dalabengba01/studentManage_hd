@@ -195,7 +195,6 @@ def getPostData(requestData):
     queryType = requestData['queryType']  # 查询类型
 
     postData = []
-    postList = []
     p_obj = enterprisePost.objects
     postList = list(p_obj.values())
     # 岗位属性筛选
@@ -214,7 +213,6 @@ def getPostData(requestData):
         myData = listSplit(postData, pageSize, pageNum)
     else:
         myData = listSplit(postData, pageSize, pageNum)
-
 
     return JsonResponse({
         'ret': 0,
