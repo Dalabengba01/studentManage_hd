@@ -32,7 +32,7 @@ class enterpriseManage(BaseModels):
     enterpriseName = models.CharField('企业名称', max_length=30)
     enterpriseScale = models.CharField('企业规模', max_length=300)
     enterpriseContacts = models.CharField('企业联系人', max_length=30)
-    enterprisePhone = models.CharField('企业电话', max_length=11)
+    enterprisePhone = models.CharField('企业电话', max_length=100)
     enterpriseAddress = models.CharField('企业地址', max_length=400)
     skyEyeScore = models.CharField('天眼查分值', max_length=8)
     remarks = models.CharField('备注', max_length=400)
