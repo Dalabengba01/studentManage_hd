@@ -106,7 +106,7 @@ def deleteStudent(requestData):
     :return:
     """
     studentCode = requestData['studentCode']
-    if studentManage.objects.filter(studentCode=studentCode).delete():
+    if studentManage.objects.filter(studentCode=studentCode).update(isDelete=True):
         return JsonResponse({'ret': 0, 'data': '删除学生信息成功!'})
     else:
         return JsonResponse({'ret': 1, 'data': '删除学生信息失败,请稍后重试!'})
@@ -227,59 +227,60 @@ def getStudentData(requestData):
     c_obj = classesManage.objects
     # 学生就业状态筛选
     if queryType == 'noSearch' and keyWord == '' and searchType in ['参军', '待安置', '已安置', '拟升学']:
-        subData0 = list(s_obj.filter(employmentStatus=searchType).values())
+        subData0 = list(s_obj.filter(employmentStatus=searchType, isDelete=False).values())
     else:
-        subData0 = list(s_obj.filter().values())
+        subData0 = list(s_obj.filter(isDelete=False).values())
 
     # 学生属性筛选
     if queryType in ['studentCode', 'studentName', 'studentSex', 'studentNativePlace'] and keyWord != '':
         search = {}
         key = queryType + '__icontains'
         search[key] = keyWord
+        search['isDelete'] = True
         subData0 = list(s_obj.filter(**search).values())
 
     if queryType == 'classesName' and keyWord != '':
         # 1.查询此班级的编号,获取班级编号并set去重
-        classesCodeList = set([i['classesCode'] for i in list(c_obj.filter(classesName__icontains=keyWord).values())])
+        classesCodeList = set([i['classesCode'] for i in list(c_obj.filter(classesName__icontains=keyWord, isDelete=False).values())])
         # 2.利用此编号查询学生绑定班级专业表
         bindCode = []
         for i in classesCodeList:
-            bindCode.extend(list(s_obj.filter(classesCode=i).values()))
+            bindCode.extend(list(s_obj.filter(classesCode=i, isDelete=False).values()))
         # 3.存储有此班级编号的学号
         studentCodeList = [str(i['studentCode']) for i in bindCode]
         studentData = []
         for i in studentCodeList:
-            studentData.extend(list(s_obj.filter(studentCode=i).values()))
+            studentData.extend(list(s_obj.filter(studentCode=i, isDelete=False).values()))
         subData0 = studentData
     # 自定义分页(提高系统运行速度)
     myData = listSplit(subData0, pageSize, pageNum)
     for i in myData['currentData']:
         # 获取所属专业,班级名称，班级届数并合并到学生信息列表中
-        for ii in s_obj.filter(studentCode=i['studentCode']).values():
+        for ii in s_obj.filter(studentCode=i['studentCode'], isDelete=False).values():
             if ii['classesCode'] != '0':
                 studentLevel = ''
                 toClasses = ''
                 toProfession = ''
-                for iii in c_obj.filter(classesCode=ii['classesCode']).values():
+                for iii in c_obj.filter(classesCode=ii['classesCode'], isDelete=False).values():
                     studentLevel = iii['classesLevel']
                     toClasses = iii['classesName']
-                for iiii in professionManage.objects.filter(professionCode=ii['professionCode']).values():
+                for iiii in professionManage.objects.filter(professionCode=ii['professionCode'], isDelete=False).values():
                     toProfession = iiii['professionName']
                 i.update({'studentLevel': studentLevel, 'toProfession': toProfession, 'toClasses': toClasses})
             else:
                 i.update({'studentLevel': '未绑定', 'toProfession': '未绑定', 'toClasses': '未绑定'})
 
         # 获取岗位信息和企业信息
-        for studentBindData in list(s_obj.filter(studentCode=i['studentCode']).values()):
+        for studentBindData in list(s_obj.filter(studentCode=i['studentCode'], isDelete=False).values()):
             if studentBindData['postCode'] != '0':
-                for postData in list(enterprisePost.objects.filter(postCode=studentBindData['postCode']).values()):
+                for postData in list(enterprisePost.objects.filter(postCode=studentBindData['postCode'], isDelete=False).values()):
                     i.update({'postName': postData['postName'], 'postAddress': postData['postAddress']})
             else:
                 i.update({'postName': '未绑定', 'postAddress': '未绑定'})
 
             if studentBindData['enterpriseCode'] != '0':
                 for enterpriseData in list(
-                        enterpriseManage.objects.filter(enterpriseCode=studentBindData['enterpriseCode']).values()):
+                        enterpriseManage.objects.filter(enterpriseCode=studentBindData['enterpriseCode'], isDelete=False).values()):
                     i.update({'enterpriseName': enterpriseData['enterpriseName'],
                               'enterpriseAddress': enterpriseData['enterpriseAddress'],
                               'enterprisePhone': enterpriseData['enterprisePhone']})
@@ -304,14 +305,14 @@ def getProfessionAndClassesCascaderOptions(requestData):
 
     # 合成专业数据
     professionData = []  # 临时存放专业数据
-    for i in professionManage.objects.values():
+    for i in professionManage.objects.filter(isDelete=False).values():
         professionCode = i['professionCode']
         professionName = i['professionName']
         professionData.append({'value': str(professionCode), 'label': professionName, 'disabled': True})
 
     # 提取绑定关系数据
     bindData = []
-    for i in classesBindProfession.objects.values():
+    for i in classesBindProfession.objects.filter(isDelete=False).values():
         for ii in classesManage.objects.values():
             if i['classesCode'] == ii['classesCode']:
                 classesCode = ii['classesCode']
@@ -330,7 +331,6 @@ def getProfessionAndClassesCascaderOptions(requestData):
             if i['value'] == ii['professionCode']:
                 childrenData.append({'value': str(classesCode), 'label': classesName})
         classesData.append({'professionCode': i['value'], 'children': childrenData})
-    # print(classesData)
 
     # 合成最终数据
     professionContainer = []  # 专业容器包含班级子容器 value:专业编号 label:专业名称
@@ -363,16 +363,16 @@ def getPostTrackData(requestData):
     obj = studentPostTrack.objects
 
     if queryType == 'noSearch':
-        dataList = list(obj.filter().values())
+        dataList = list(obj.filter(isDelete=False).values())
 
     if queryType == 'studentCode':
-        dataList = list(obj.filter(studentCode__contains=keyWord).values())
+        dataList = list(obj.filter(studentCode__contains=keyWord, isDelete=False).values())
 
     if queryType == 'studentName':
-        dataList = list(obj.filter(studentName__contains=keyWord).values())
+        dataList = list(obj.filter(studentName__contains=keyWord, isDelete=False).values())
 
     if queryType == 'recordTeacher':
-        dataList = list(obj.filter(recordTeacher__contains=keyWord).values())
+        dataList = list(obj.filter(recordTeacher__contains=keyWord, isDelete=False).values())
 
     paginator = Paginator(dataList, pageSize)  # 每页显示多少数据
     total = paginator.count  # 总数据量
@@ -393,7 +393,7 @@ def deletePostTrack(requestData):
     :return:
     """
     trackCode = requestData['trackCode']
-    if studentPostTrack.objects.filter(trackCode=trackCode).delete():
+    if studentPostTrack.objects.filter(trackCode=trackCode).update(isDelete=True):
         return JsonResponse({'ret': 0, 'data': '删除学生岗位追踪信息成功!'})
     else:
         return JsonResponse({'ret': 1, 'data': '删除学生岗位追踪信息失败,请稍后重试!'})

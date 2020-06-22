@@ -18,12 +18,12 @@ def getWorkAreaData(requestData):
         classesLevel = requestData['queryInfo'][1]
         # 提取此专业此届数有那些班级的班级编号
         classesData = []
-        for i in list(classesBindProfession.objects.filter(professionCode=professionCode).values()):
+        for i in list(classesBindProfession.objects.filter(professionCode=professionCode, isDelete=False).values()):
             for ii in list(
-                    classesManage.objects.filter(classesCode=i['classesCode'], classesLevel=classesLevel).values()):
+                    classesManage.objects.filter(classesCode=i['classesCode'], classesLevel=classesLevel, isDelete=False).values()):
                 if i['classesCode'] == ii['classesCode']:
                     classesData.append(str(i['classesCode']))
-        studentBaseData = [i for i in list(studentManage.objects.filter(professionCode=professionCode).values()) if
+        studentBaseData = [i for i in list(studentManage.objects.filter(professionCode=professionCode, isDelete=False).values()) if
                            i['classesCode'] in classesData]  # 获取学生基本数据并绑定专业及班级
 
     if queryType == 'getClassesData':
@@ -32,16 +32,16 @@ def getWorkAreaData(requestData):
         classesCode = requestData['queryInfo'][2]
         # 提取此专业此届数有那些班级的班级编号
         classesData = []
-        for i in list(classesManage.objects.filter(classesCode=classesCode, classesLevel=classesLevel).values()):
+        for i in list(classesManage.objects.filter(classesCode=classesCode, classesLevel=classesLevel, isDelete=False).values()):
             classesData.append(str(i['classesCode']))
         studentBaseData = [i for i in list(
-            studentManage.objects.filter(professionCode=professionCode, classesCode=classesCode).values()) if
+            studentManage.objects.filter(professionCode=professionCode, classesCode=classesCode, isDelete=False).values()) if
                            i['classesCode'] in classesData]  # 获取学生基本数据并绑定专业及班级
 
     # 提取源数据
     qq = []
     for i in studentBaseData:
-        for ii in enterprisePost.objects.filter(postCode=i['postCode']).values():
+        for ii in enterprisePost.objects.filter(postCode=i['postCode'], isDelete=False).values():
             if ii['postAddress'].find('内蒙古自治区') != -1 or ii['postAddress'].find('黑龙江省', 0) != -1:
                 qq.append({'name': ii['postAddress'][:3]})
                 continue
@@ -93,12 +93,12 @@ def getUnemployedRateData(requestData):
         classesLevel = requestData['queryInfo'][1]
         # 提取此专业此届数有那些班级的班级编号
         classesData = []
-        for i in list(classesBindProfession.objects.filter(professionCode=professionCode).values()):
+        for i in list(classesBindProfession.objects.filter(professionCode=professionCode, isDelete=False).values()):
             for ii in list(
-                    classesManage.objects.filter(classesCode=i['classesCode'], classesLevel=classesLevel).values()):
+                    classesManage.objects.filter(classesCode=i['classesCode'], classesLevel=classesLevel, isDelete=False).values()):
                 if i['classesCode'] == ii['classesCode']:
                     classesData.append(str(i['classesCode']))
-        studentBaseData = [i for i in list(studentManage.objects.filter(professionCode=professionCode).values()) if
+        studentBaseData = [i for i in list(studentManage.objects.filter(professionCode=professionCode, isDelete=False).values()) if
                            i['classesCode'] in classesData]  # 获取学生基本数据并绑定专业及班级
 
     if queryType == 'getProfessioAndClassesnunemployedData':
@@ -107,15 +107,15 @@ def getUnemployedRateData(requestData):
         classesCode = requestData['queryInfo'][2]
         # 提取此专业此届数有那些班级的班级编号
         classesData = []
-        for i in list(classesManage.objects.filter(classesCode=classesCode, classesLevel=classesLevel).values()):
+        for i in list(classesManage.objects.filter(classesCode=classesCode, classesLevel=classesLevel, isDelete=False).values()):
             classesData.append(str(i['classesCode']))
         studentBaseData = [i for i in list(
-            studentManage.objects.filter(professionCode=professionCode, classesCode=classesCode).values()) if
+            studentManage.objects.filter(professionCode=professionCode, classesCode=classesCode, isDelete=False).values()) if
                            i['classesCode'] in classesData]  # 获取学生基本数据并绑定专业及班级
 
     for i in studentBaseData:
-        if studentManage.objects.filter(studentCode=i['studentCode']).count() > 0:
-            for ii in studentManage.objects.filter(studentCode=i['studentCode']).values():  # 获取到绑定关系
+        if studentManage.objects.filter(studentCode=i['studentCode'], isDelete=False).count() > 0:
+            for ii in studentManage.objects.filter(studentCode=i['studentCode'], isDelete=False).values():  # 获取到绑定关系
                 i.update(ii)
                 studentList1.append(i)
         else:
@@ -126,7 +126,7 @@ def getUnemployedRateData(requestData):
     studentList2 = []
     for iii in studentList1:
         if str(iii['professionCode']) != '-1':
-            for iiii in professionManage.objects.filter(professionCode=iii['professionCode']).values():
+            for iiii in professionManage.objects.filter(professionCode=iii['professionCode'], isDelete=False).values():
                 iii.update({'professionName': iiii['professionName']})
                 studentList2.append(iii)
         else:
@@ -137,7 +137,7 @@ def getUnemployedRateData(requestData):
     studentList3 = []
     for student in studentList2:
         if str(student['classesCode']) != '-1':
-            for classData in classesManage.objects.filter(classesCode=student['classesCode']).values():
+            for classData in classesManage.objects.filter(classesCode=student['classesCode'], isDelete=False).values():
                 student.update({'classesLevel': classData['classesLevel'], 'classesName': classData['classesName']})
                 studentList3.append(student)
         else:
@@ -160,7 +160,7 @@ def getUnemployedRateData(requestData):
                 value += 1
 
         classesInfo = []  # 保存班级最终的数据
-        for className in classesManage.objects.filter().values():
+        for className in classesManage.objects.filter(isDelete=False).values():
             classesContainer = {}  # 一个班级一个容器
             num = 0  # 当前班级当前原因有多少人
             for students in studentList:
@@ -188,13 +188,13 @@ def getSalaryData(requestData):
         classesLevel = requestData['queryInfo'][1]
         # 提取此专业此届数有那些班级的班级编号
         classesData = []
-        for i in list(classesBindProfession.objects.filter(professionCode=professionCode).values()):
+        for i in list(classesBindProfession.objects.filter(professionCode=professionCode, isDelete=False).values()):
             for ii in list(
-                    classesManage.objects.filter(classesCode=i['classesCode'], classesLevel=classesLevel).values()):
+                    classesManage.objects.filter(classesCode=i['classesCode'], classesLevel=classesLevel, isDelete=False).values()):
                 if i['classesCode'] == ii['classesCode']:
                     classesData.append(str(i['classesCode']))
         salaryList = [i['studentSalary'] for i in list(
-            studentManage.objects.filter(professionCode=professionCode, employmentStatus='已安置').values().order_by('studentSalary')) if
+            studentManage.objects.filter(professionCode=professionCode, employmentStatus='已安置', isDelete=False).values().order_by('studentSalary')) if
                            i['classesCode'] in classesData]  # 获取学生基本数据并绑定专业及班级
 
         # 专业平均工资
@@ -228,12 +228,12 @@ def getSalaryData(requestData):
         classesCode = requestData['queryInfo'][2]
         # 提取此专业此届数有那些班级的班级编号
         classesData = []
-        for i in list(classesManage.objects.filter(classesCode=classesCode, classesLevel=classesLevel).values()):
+        for i in list(classesManage.objects.filter(classesCode=classesCode, classesLevel=classesLevel, isDelete=False).values()):
             classesData.append(str(i['classesCode']))
         salaryList = [i['studentSalary'] for i in list(studentManage
                              .objects
                              .filter(professionCode=professionCode, classesCode=classesCode,
-                                     employmentStatus='已安置')
+                                     employmentStatus='已安置', isDelete=False)
                              .values().order_by('studentSalary')) if i['classesCode'] in classesData]  # 获取学生基本数据并绑定专业及班级
 
         # 专业平均工资
@@ -279,19 +279,19 @@ def getPeopleData(requestData):
         classesCode = requestData['queryInfo'][2]
         # 提取此专业此届数有那些班级的班级编号
         classesData = []
-        for i in list(classesManage.objects.filter(classesCode=classesCode, classesLevel=classesLevel).values()):
+        for i in list(classesManage.objects.filter(classesCode=classesCode, classesLevel=classesLevel, isDelete=False).values()):
             classesData.append(str(i['classesCode']))
         studentBaseData = [i for i in list(
-            studentManage.objects.filter(professionCode=professionCode, classesCode=classesCode).values()) if
+            studentManage.objects.filter(professionCode=professionCode, classesCode=classesCode, isDelete=False).values()) if
                            i['classesCode'] in classesData]  # 获取学生基本数据并绑定专业及班级
 
         # 提取本班级有哪些学生
         boyNum = 0
         girlNum = 0
         for i in studentBaseData:
-            for ii in studentManage.objects.filter(studentCode=i['studentCode'], studentSex='男生').values():
+            for ii in studentManage.objects.filter(studentCode=i['studentCode'], studentSex='男生', isDelete=False).values():
                 boyNum = boyNum + 1
-            for iii in studentManage.objects.filter(studentCode=i['studentCode'], studentSex='女生').values():
+            for iii in studentManage.objects.filter(studentCode=i['studentCode'], studentSex='女生', isDelete=False).values():
                 girlNum = girlNum + 1
         bodyMax = boyNum + girlNum
 
@@ -302,20 +302,20 @@ def getPeopleData(requestData):
         classesLevel = requestData['queryInfo'][1]
         # 提取此专业此届数有那些班级的班级编号
         classesData = []
-        for i in list(classesBindProfession.objects.filter(professionCode=professionCode).values()):
+        for i in list(classesBindProfession.objects.filter(professionCode=professionCode, isDelete=False).values()):
             for ii in list(
-                    classesManage.objects.filter(classesCode=i['classesCode'], classesLevel=classesLevel).values()):
+                    classesManage.objects.filter(classesCode=i['classesCode'], classesLevel=classesLevel, isDelete=False).values()):
                 if i['classesCode'] == ii['classesCode']:
                     classesData.append(str(i['classesCode']))
-        studentBaseData = [i for i in list(studentManage.objects.filter(professionCode=professionCode).values()) if
+        studentBaseData = [i for i in list(studentManage.objects.filter(professionCode=professionCode, isDelete=False).values()) if
                            i['classesCode'] in classesData]  # 获取学生基本数据并绑定专业及班级
 
         boyNum = 0
         girlNum = 0
         for i in studentBaseData:
-            for ii in studentManage.objects.filter(studentCode=i['studentCode'], studentSex='男生').values():
+            for ii in studentManage.objects.filter(studentCode=i['studentCode'], studentSex='男生', isDelete=False).values():
                 boyNum = boyNum + 1
-            for iii in studentManage.objects.filter(studentCode=i['studentCode'], studentSex='女生').values():
+            for iii in studentManage.objects.filter(studentCode=i['studentCode'], studentSex='女生', isDelete=False).values():
                 girlNum = girlNum + 1
         bodyMax = boyNum + girlNum
         return JsonResponse({'ret': 0, 'bodyMax': bodyMax, 'boyNum': boyNum, 'girlNum': girlNum})
@@ -327,14 +327,14 @@ def getIndexData(requestData):
     :param requestData:
     :return:
     """
-    postCount = enterprisePost.objects.values().count()
-    unemployedCount = studentManage.objects.exclude(employmentStatus='已安置').values().count()
-    employmentCount = studentManage.objects.filter(employmentStatus='已安置').values().count()
-    studentSumCount = studentManage.objects.filter().values().count()
-    professionSumCount = professionManage.objects.filter().values().count()
-    classesSumCount = classesManage.objects.filter().values().count()
-    boySumCount = studentManage.objects.filter(studentSex='男生').values().count()
-    girlSumCount = studentManage.objects.filter(studentSex='女生').values().count()
+    postCount = enterprisePost.objects.filter(isDelete=False).values().count()
+    unemployedCount = studentManage.objects.exclude(employmentStatus='已安置', isDelete=False).values().count()
+    employmentCount = studentManage.objects.filter(employmentStatus='已安置', isDelete=False).values().count()
+    studentSumCount = studentManage.objects.filter(isDelete=False).values().count()
+    professionSumCount = professionManage.objects.filter(isDelete=False).values().count()
+    classesSumCount = classesManage.objects.filter(isDelete=False).values().count()
+    boySumCount = studentManage.objects.filter(studentSex='男生', isDelete=False).values().count()
+    girlSumCount = studentManage.objects.filter(studentSex='女生', isDelete=False).values().count()
 
     return JsonResponse(
         {'ret': 0, 'postCount': postCount, 'unemployedCount': unemployedCount,
@@ -351,23 +351,23 @@ def getWorkDirection(requestData):
     :return:
     """
     studentList1 = []  # 组装包含绑定专业及班级的关系
-    studentBaseData = studentManage.objects.filter(employmentStatus='已安置').values()  # 获取学生基本数据并绑定专业及班级
+    studentBaseData = studentManage.objects.filter(employmentStatus='已安置', isDelete=False).values()  # 获取学生基本数据并绑定专业及班级
     for i in studentBaseData:
-        for ii in studentManage.objects.filter(studentCode=i['studentCode']).values():  # 获取到绑定关系
+        for ii in studentManage.objects.filter(studentCode=i['studentCode'], isDelete=False).values():  # 获取到绑定关系
             i.update(ii)
             studentList1.append(i)
 
     # 替换专业代码为专业名称
     studentList2 = []
     for iii in studentList1:
-        for iiii in professionManage.objects.filter(professionCode=iii['professionCode']).values():
+        for iiii in professionManage.objects.filter(professionCode=iii['professionCode'], isDelete=False).values():
             iii.update({'professionName': iiii['professionName']})
             studentList2.append(iii)
 
     # 替换班级代码为班级名称
     studentList3 = []
     for student in studentList2:
-        for classData in classesManage.objects.filter(classesCode=student['classesCode']).values():
+        for classData in classesManage.objects.filter(classesCode=student['classesCode'], isDelete=False).values():
             student.update({'classesLevel': classData['classesLevel'], 'classesName': classData['classesName']})
             studentList3.append(student)
 
@@ -376,7 +376,7 @@ def getWorkDirection(requestData):
     for studentData in studentList3:
         studentData.pop('classesCode')
         studentData.pop('professionCode')
-        for i in enterprisePost.objects.filter(postCode=studentData['postCode']).values():
+        for i in enterprisePost.objects.filter(postCode=studentData['postCode'], isDelete=False).values():
             if str(studentData['postCode']) == str(i['postCode']):
                 studentData.update(i)
         studentList.append(studentData)

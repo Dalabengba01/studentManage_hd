@@ -205,6 +205,9 @@ def data(request):
                     if useraction == 'systemEditLocked':
                         return system.systemEditLocked(requestData)
 
+                    if useraction == 'systemDataRecovery':
+                        return system.systemDataRecovery(requestData)
+
                 else:
                     return JsonResponse({'ret': 1, 'data': '用户未登录！'})
         else:

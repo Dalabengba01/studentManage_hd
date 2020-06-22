@@ -5,7 +5,8 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 
 from utils.tools import getIndex
-from .models import teacherData, systemLogs, editLocked
+from .models import teacherData, systemLogs, editLocked, professionManage, classesManage, enterpriseManage, \
+    enterprisePost, studentManage, studentPostTrack, classesBindProfession, postBindEnterprise
 
 
 # 系统初始化
@@ -103,38 +104,40 @@ def userModifyTeacher(requestData):
             return JsonResponse({'ret': 1, 'data': '原始教师名称错误！'})
 
 
+# 操作性质API接口字典
+apiName = {
+    'userLogout': '用户退出',
+    'isSystemInit': '系统是否初始化',
+    'systemInit': '系统初始化',
+    'userLogin': '用户登陆',
+    'userModifyAccount': '修改账号名称',
+    'userModifyPass': '修改账号密码',
+    'userModifyTeacher': '修改教师名称',
+    'addProfession': '添加专业',
+    'editProfession': '编辑专业信息',
+    'deleteProfession': '删除专业',
+    'addClasses': '添加班级',
+    'editClasses': '编辑班级信息',
+    'deleteClasses': '删除班级',
+    'addEnterprise': '添加企业',
+    'editEnterprise': '编辑企业信息',
+    'deleteEnterprise': '删除企业',
+    'addPost': '添加岗位',
+    'editPost': '编辑岗位信息',
+    'deletePost': '删除岗位',
+    'addstudent': '添加学生',
+    'editStudent': '编辑学生信息',
+    'deleteStudent': '删除学生',
+    'deletePostTrack': '删除岗位追踪数据'
+}
+
+
 # 用户及系统操作日志收集记录
 def logs(data):
     """
     用户及系统操作日志收集记录
     :return:
     """
-    # 操作性质API接口字典
-    apiName = {
-        'userLogout': '用户退出',
-        'isSystemInit': '系统是否初始化',
-        'systemInit': '系统初始化',
-        'userLogin': '用户登陆',
-        'userModifyAccount': '修改账号名称',
-        'userModifyPass': '修改账号密码',
-        'userModifyTeacher': '修改教师名称',
-        'addProfession': '添加专业',
-        'editProfession': '编辑专业信息',
-        'deleteProfession': '删除专业',
-        'addClasses': '添加班级',
-        'editClasses': '编辑班级信息',
-        'deleteClasses': '删除班级',
-        'addEnterprise': '添加企业',
-        'editEnterprise': '编辑企业信息',
-        'deleteEnterprise': '删除企业',
-        'addPost': '添加岗位',
-        'editPost': '编辑岗位信息',
-        'deletePost': '删除岗位',
-        'addstudent': '添加学生',
-        'editStudent': '编辑学生信息',
-        'deleteStudent': '删除学生',
-        'deletePostTrack': '删除岗位追踪数据'
-    }
     try:
         operationUser = data['username']
     except Exception:
@@ -145,14 +148,7 @@ def logs(data):
             dataRecord = {'useraction': data['useraction'], 'username': data['username']}
         else:
             dataRecord = data
-
-        index = 1000
-        # 正序查询
-        dataList = list(systemLogs.objects.values().order_by('logCode'))
-        if len(dataList) <= 0:
-            index = 1000
-        else:
-            index = int(dataList[-1]['logCode']) + 1
+        index = getIndex(systemLogs, 'logCode')
         systemLogs.objects.create(logCode=index, operationUser=operationUser, operationType=operationType,
                                   dataRecord=dataRecord)
     except Exception:
@@ -194,13 +190,6 @@ def getSystemLogsData(requestData):
     })
 
 
-def deleteSystemLogsData(requestData):
-    if systemLogs.objects.filter().delete():
-        return JsonResponse({'ret': 0, 'data': '删除系统操作日志成功！'})
-    else:
-        return JsonResponse({'ret': 1, 'data': '删除系统操作日志失败，请稍后重试！'})
-
-
 def systemEditLocked(requestData):
     """
     编辑类功能实现编辑锁
@@ -234,4 +223,48 @@ def systemEditLocked(requestData):
                 return JsonResponse({'ret': 0})
             else:
                 teacher = list(teacherData.objects.filter(user_name=lockeList[0]['userName']).values())
-                return JsonResponse({'ret': 1, 'status': False, 'data': '此条信息教师 ' + teacher[0]['teacher_name'] + ' 正在编辑，请稍后重试或者与其协商!'})
+                return JsonResponse(
+                    {'ret': 1, 'status': False, 'data': '此条信息教师 ' + teacher[0]['teacher_name'] + ' 正在编辑，请稍后重试或者与其协商!'})
+
+
+def systemDataRecovery(requestData):
+    recoveryData = requestData['data']
+    operationType = recoveryData['operationType']  # 恢复数据类型
+    dataRecord = eval(recoveryData['dataRecord'])  # 数据记录
+    # typeList = [v for k, v in apiName.items() if '删除' in v] # 获取API有哪些是提供删除
+    # ['删除专业', '删除班级', '删除企业', '删除岗位', '删除学生', '删除岗位追踪数据']
+    if operationType == '删除专业':
+        # 此条数据标记为不删除
+        professionManage.objects.filter(professionCode=dataRecord['professionCode']).update(isDelete=False)
+        classesBindProfession.objects.filter(professionCode=dataRecord['professionCode']).update(isDelete=False)
+
+    if operationType == '删除班级':
+        classesManage.objects.filter(classesCode=dataRecord['classesCode']).update(isDelete=False)
+        classesBindProfession.objects.filter(classesCode=dataRecord['classesCode']).update(isDelete=False)
+
+    if operationType == '删除企业':
+        enterpriseManage.objects.filter(enterpriseCode=dataRecord['enterpriseCode']).update(isDelete=False)
+        postBindEnterprise.objects.filter(enterpriseCode=dataRecord['enterpriseCode']).update(isDelete=False)
+
+    if operationType == '删除岗位':
+        enterprisePost.objects.filter(postCode=dataRecord['postCode']).update(isDelete=False)
+        postBindEnterprise.objects.filter(postCode=dataRecord['postCode']).update(isDelete=False)
+
+    if operationType == '删除学生':
+        studentManage.objects.filter(studentCode=dataRecord['studentCode']).update(isDelete=False)
+
+    if operationType == '删除岗位追踪数据':
+        studentPostTrack.objects.filter(trackCode=dataRecord['trackCode']).update(isDelete=False)
+
+    # 同时删除此条日志记录
+    if systemLogs.objects.filter(logCode=recoveryData['logCode']).delete():
+        return JsonResponse({'ret': 0, 'data': '数据恢复成功！'})
+    else:
+        return JsonResponse({'ret': 0, 'data': '数据恢复失败，请稍后重试！'})
+
+
+def deleteSystemLogsData(requestData):
+    if systemLogs.objects.filter(logCode=requestData['logCode']).delete():
+        return JsonResponse({'ret': 0, 'data': '删除操作日志成功！'})
+    else:
+        return JsonResponse({'ret': 1, 'data': '删除操作日志失败，请稍后重试！'})

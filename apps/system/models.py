@@ -1,5 +1,11 @@
 from django.db import models
 
+class BaseModels(models.Model):
+    """模型类自定义抽象基类"""
+    class Meta:
+        abstract = True
+
+    isDelete = models.BooleanField(verbose_name='是否删除', default=False)
 
 class teacherData(models.Model):
     """系统初始化的教师管理账户"""
@@ -15,7 +21,7 @@ class teacherData(models.Model):
     add_time = models.DateTimeField(auto_now_add=True, verbose_name="初始化时间")
 
 
-class enterpriseManage(models.Model):
+class enterpriseManage(BaseModels):
     """企业管理相关数据"""
 
     class Meta:
@@ -33,7 +39,7 @@ class enterpriseManage(models.Model):
     addTime = models.DateField(auto_now=True, verbose_name="更新日期")
 
 
-class enterprisePost(models.Model):
+class enterprisePost(BaseModels):
     """企业岗位表"""
 
     class Meta:
@@ -48,7 +54,7 @@ class enterprisePost(models.Model):
     addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
 
 
-class professionManage(models.Model):
+class professionManage(BaseModels):
     """后台--专业管理相关数据"""
 
     class Meta:
@@ -60,7 +66,7 @@ class professionManage(models.Model):
     addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
 
 
-class classesManage(models.Model):
+class classesManage(BaseModels):
     """后台--班级管理相关数据"""
 
     class Meta:
@@ -73,7 +79,7 @@ class classesManage(models.Model):
     addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
 
 
-class studentManage(models.Model):
+class studentManage(BaseModels):
     """学生相关数据"""
 
     class Meta:
@@ -101,7 +107,7 @@ class studentManage(models.Model):
     addTime = models.DateTimeField(auto_now=True, verbose_name="修改时间")
 
 
-class studentPostTrack(models.Model):
+class studentPostTrack(BaseModels):
     """学生岗位追踪表"""
     trackCode = models.IntegerField('数据编号', primary_key=True)
     studentCode = models.CharField('学生学号', max_length=30)
@@ -115,7 +121,7 @@ class studentPostTrack(models.Model):
     addTime = models.DateTimeField(auto_now_add=True, verbose_name="修改时间")
 
 
-class classesBindProfession(models.Model):
+class classesBindProfession(BaseModels):
     """班级绑定专业表"""
 
     class Meta:
@@ -127,7 +133,7 @@ class classesBindProfession(models.Model):
     addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
 
 
-class postBindentErprise(models.Model):
+class postBindEnterprise(BaseModels):
     """岗位绑定企业"""
 
     class Meta:
@@ -164,4 +170,3 @@ class editLocked(models.Model):
     userName = models.CharField('用户名称', max_length=30)
     code = models.IntegerField('数据标识')  # 可以是学号，专业编号等
     lockedTime = models.DateTimeField(auto_now=True, verbose_name="锁定时间")
-

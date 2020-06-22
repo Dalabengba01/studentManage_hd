@@ -48,8 +48,8 @@ def deleteClasses(requestData):
     :return:
     """
     classesCode = requestData['classesCode']
-    if classesManage.objects.filter(classesCode=classesCode).delete() and classesBindProfession.objects.filter(
-            classesCode=classesCode).delete():
+    if classesManage.objects.filter(classesCode=classesCode).update(isDelete=True) and classesBindProfession.objects.filter(
+            classesCode=classesCode).update(isDelete=True):
         studentManage.objects.filter(classesCode=classesCode).update(classesCode='0', professionCode='0')
         # 需要重置已绑定专业的班级还有学生
         return JsonResponse({'ret': 0, 'data': '删除班级成功！'})
@@ -70,13 +70,13 @@ def getclassesData(requestData):
     classObj = classesManage.objects
 
     classesData = []
-    classesList = list(classObj.filter(classesName__contains=keyWord).values())
+    classesList = list(classObj.filter(classesName__contains=keyWord, isDelete=False).values())
     myData = listSplit(classesList, pageSize, pageNum)  # 自定义分页(提高系统运行速度)
     for classes in myData['currentData']:
-        for bind in classesBindProfession.objects.filter(classesCode=classes['classesCode']).values():
-            for profession in professionManage.objects.filter(professionCode=bind['professionCode']).values():
+        for bind in classesBindProfession.objects.filter(classesCode=classes['classesCode'], isDelete=False).values():
+            for profession in professionManage.objects.filter(professionCode=bind['professionCode'], isDelete=False).values():
                 classes.update({'toProfession': profession['professionName']})
-            studentCount = studentManage.objects.filter(classesCode=classes['classesCode']).count()
+            studentCount = studentManage.objects.filter(classesCode=classes['classesCode'], isDelete=False).count()
             classes.update({'classesHumanNum': studentCount})
         classesData.append(classes)
 
@@ -95,7 +95,7 @@ def getProfessionDataCascaderOptions(requestData):
     :return:
     """
     data = []
-    for i in professionManage.objects.values():
+    for i in professionManage.objects.filter(isDelete=False).values():
         data.append({'value': i['professionCode'], 'label': i['professionName']})
     return JsonResponse({'ret': 0, 'data': data})
 
@@ -110,14 +110,14 @@ def getProfessionAndClassesLevelDataCascaderOptions(requestData):
     # 合成专业数据
     global classesLevelData
     professionData = []  # 临时存放专业数据
-    for i in professionManage.objects.values():
+    for i in professionManage.objects.filter(isDelete=False).values():
         professionCode = i['professionCode']
         professionName = i['professionName']
         professionData.append({'value': str(professionCode), 'label': professionName, 'disabled': True})
 
     # 提取绑定关系数据
     bindData = []
-    for i in classesBindProfession.objects.values():
+    for i in classesBindProfession.objects.filter(isDelete=False).values():
         for ii in classesManage.objects.values():
             if i['classesCode'] == ii['classesCode']:
                 classesCode = ii['classesCode']
@@ -179,11 +179,11 @@ def getProfessionAndClassesDataCascaderOptions(requestData):
     :return:
     """
     data = []
-    for i in list(professionManage.objects.values()):
+    for i in list(professionManage.objects.filter(isDelete=False).values()):
         professions = []
-        for ii in list(classesBindProfession.objects.values()):
+        for ii in list(classesBindProfession.objects.filter(isDelete=False).values()):
             if str(i['professionCode']) == str(ii['professionCode']):
-                for iii in list(classesManage.objects.filter(classesCode=ii['classesCode']).values()):
+                for iii in list(classesManage.objects.filter(classesCode=ii['classesCode'], isDelete=False).values()):
                     if str(iii['classesCode']) == str(ii['classesCode']):
                         if {'value': iii['classesLevel'], 'label': iii['classesLevel'] + '届'} not in professions:
                             professions.append({'value': iii['classesLevel'], 'label': iii['classesLevel'] + '届'})

@@ -51,10 +51,10 @@ def deleteProfession(requestData):
     lock = 0
     codeLen = len(classesCodeList)
     for i in classesCodeList:
-        classesManage.objects.filter(classesCode=i).delete()
+        classesManage.objects.filter(classesCode=i).update(isDelete=True)
         lock = lock + 1
-    if lock == codeLen and professionManage.objects.filter(professionCode=professionCode).delete() and \
-            classesBindProfession.objects.filter(professionCode=professionCode).delete():
+    if lock == codeLen and professionManage.objects.filter(professionCode=professionCode).update(isDelete=True) and \
+            classesBindProfession.objects.filter(professionCode=professionCode).update(isDelete=True):
         studentManage.objects.filter(professionCode=professionCode).update(professionCode='0', classesCode='0')
 
         return JsonResponse({'ret': 0, 'data': '删除专业成功！'})
@@ -75,10 +75,10 @@ def getProfessionData(requestData):
 
     # 分析专业容器绑定哪些班级子容器
     professionData = []  # 专业容器(其中包班级子容器)
-    for i in professionManage.objects.filter(professionName__contains=keyWord).values():
+    for i in professionManage.objects.filter(professionName__contains=keyWord, isDelete=False).values():
         classesData = {}  # 班级子容器,一次外层for循环代表一个专业容器，并把这个子容器加入到父容器
         hh = []  # 班级数据容器(可容纳多个班级)
-        for ii in classesBindProfession.objects.values():
+        for ii in classesBindProfession.objects.filter(isDelete=False).values():
             if str(i['professionCode']) == str(ii['professionCode']):
                 classesData = {'classesCode': ii['classesCode']}
                 hh.append(classesData)
@@ -86,7 +86,7 @@ def getProfessionData(requestData):
 
     professionContainer = []
     # 自定义分页(提高系统运行速度)
-    professions = list(professionManage.objects.filter().values())
+    professions = list(professionManage.objects.filter(isDelete=False).values())
     myData = listSplit(professions, pageSize, pageNum)
     for i in myData['currentData']:
         hh = []
@@ -101,7 +101,7 @@ def getProfessionData(requestData):
                 for iii in ii['classesData']:
                     classesCode = iii['classesCode']
                     professionHumanNum = professionHumanNum + len(
-                        studentManage.objects.filter(classesCode=classesCode).values())
+                        studentManage.objects.filter(classesCode=classesCode, isDelete=False).values())
                 classesData = {'professionCode': professionCode, 'professionName': professionName,
                                'professionHumanNum': professionHumanNum, 'professionClassesNum': professionClassesNum,
                                'addTime': addTime}
