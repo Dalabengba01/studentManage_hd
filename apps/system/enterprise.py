@@ -194,25 +194,27 @@ def getPostData(requestData):
     pageSize = requestData['pageSize']  # 一页多少数据
     queryType = requestData['queryType']  # 查询类型
 
-    postData = []
+    myData = []
     p_obj = enterprisePost.objects
-    postList = list(p_obj.values())
+    # 没搜索条件时
+    posts = list(p_obj.values())
+
     # 岗位属性筛选
     if queryType in ['postName'] and keyWord != '':
         posts = list(p_obj.filter(postName__icontains=keyWord).values())
-        postList = listSplit(posts, pageSize, pageNum)['currentData']
+        posts = listSplit(posts, pageSize, pageNum)['currentData']
+
     # 数据合成
-    for post in postList:
+    for post in posts:
         for bind in postBindentErprise.objects.filter(postCode=post['postCode']).values():
             for enterprise in enterpriseManage.objects.filter(enterpriseCode=bind['enterpriseCode']).values():
                 post.update({'toEnterprise': enterprise['enterpriseName']})
-        postData.append(post)
+        myData.append(post)
+    myData = listSplit(myData, pageSize, pageNum)
     # 岗位属性筛选
     if queryType in ['enterpriseName'] and keyWord != '':
-        postData = [i for i in postData if i['toEnterprise' if queryType == 'enterpriseName' else queryType].lower().find(keyWord.lower()) != -1]
-        myData = listSplit(postData, pageSize, pageNum)
-    else:
-        myData = listSplit(postData, pageSize, pageNum)
+        myData = [i for i in myData if i['toEnterprise' if queryType == 'enterpriseName' else queryType].lower().find(keyWord.lower()) != -1]
+        myData = listSplit(myData, pageSize, pageNum)
 
     return JsonResponse({
         'ret': 0,

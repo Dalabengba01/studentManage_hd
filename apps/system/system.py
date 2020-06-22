@@ -3,6 +3,8 @@ from datetime import datetime
 
 from django.core.paginator import Paginator
 from django.http import JsonResponse
+
+from utils.tools import getIndex
 from .models import teacherData, systemLogs, editLocked
 
 
@@ -208,13 +210,7 @@ def systemEditLocked(requestData):
     userName = requestData['username']
     code = requestData['code']
     obj = editLocked.objects
-    # 正序查询
-    dataList = list(obj.values().order_by('lockedCode'))
-    if len(dataList) <= 0:
-        index = 1000
-    else:
-        index = int(dataList[-1]['lockedCode']) + 1
-
+    index = getIndex(editLocked, 'lockedCode')
     # 如果没有此活动且对应的code则创建
     lockeList = list(obj.filter(userAction=userAction, code=code).values())
     if len(lockeList) <= 0:
