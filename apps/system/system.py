@@ -224,11 +224,13 @@ def systemEditLocked(requestData):
         if outTime > 5:
             # 超时的信息可以删除
             obj.filter(userAction=userAction, code=code).delete()
+            obj.create(lockedCode=index, userAction=userAction, userName=userName, code=code)
             return JsonResponse({'ret': 0})
         else:
-            # 没超时就判断本次请求是不是和本条记录的userName相同
+            # 没超时就判断本次请求是不是和本条记录的userName相同,相同则修改过期时间
             data = list(obj.filter(userAction=userAction, userName=userName, code=code).values())
             if len(data) > 0 and userName == data[0]['userName']:
+                obj.get(userAction=userAction, userName=userName, code=code).save()
                 return JsonResponse({'ret': 0})
             else:
                 teacher = list(teacherData.objects.filter(user_name=lockeList[0]['userName']).values())

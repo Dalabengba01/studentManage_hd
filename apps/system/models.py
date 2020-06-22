@@ -163,5 +163,5 @@ class editLocked(models.Model):
     userAction = models.CharField('用户活动', max_length=30)
     userName = models.CharField('用户名称', max_length=30)
     code = models.IntegerField('数据标识')  # 可以是学号，专业编号等
-    lockedTime = models.DateTimeField(auto_now_add=True, verbose_name="锁定时间")
+    lockedTime = models.DateTimeField(auto_now=True, verbose_name="锁定时间")
 
