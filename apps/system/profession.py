@@ -73,10 +73,11 @@ def getProfessionData(requestData):
         professionHumanNum = studentManage.objects.filter(professionCode=profession['professionCode'],  isDelete=False).count()
         profession.update({'professionClassesNum': professionClassesNum, 'professionHumanNum': professionHumanNum})
         professionData.append(profession)
+    myData = listSplit(professionData, pageSize, pageNum)
 
     return JsonResponse({
         'ret': 0,
-        'data': professionData,
+        'data': myData['currentData'],
         'pageNum': pageNum,
         'total': len(professionData),
     })
