@@ -236,11 +236,11 @@ def getStudentData(requestData):
         subData0 = list(s_obj.filter(isDelete=False).values())
 
     # 学生属性筛选
-    if queryType in ['studentCode', 'studentName', 'studentSex', 'studentNativePlace'] and keyWord != '':
+    if queryType in ['studentCode', 'studentName', 'studentSex', 'studentNativePlace', 'employmentStatus'] and keyWord != '':
         search = {}
         key = queryType + '__icontains'
         search[key] = keyWord
-        search['isDelete'] = True
+        search['isDelete'] = False
         subData0 = list(s_obj.filter(**search).values())
 
     if queryType == 'classesName' and keyWord != '':

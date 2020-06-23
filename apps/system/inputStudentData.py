@@ -238,4 +238,4 @@ def inputStudentData():
     else:
         return JsonResponse({'ret': 1, 'data': '此文件不合法，请按照特定的表格格式上传!'})
 
-    return JsonResponse({'ret': 0, 'data': '上传文件成功!'})
+    return JsonResponse({'ret': 0, 'data': '文件数据处理成功!'})
