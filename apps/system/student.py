@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from .models import professionManage, classesManage, classesBindProfession, \
+from .models import professionManage, classesManage, \
     studentManage, enterprisePost, enterpriseManage, studentPostTrack, teacherData
 from utils.tools import getIndex, listSplit
 
@@ -11,6 +11,7 @@ def addstudent(requestData):
     :param requestData:
     :return:
     """
+    userName = requestData['username']
     studentCode = requestData['studentCode']
     studentName = requestData['studentName']
     studentSex = requestData['studentSex']
@@ -86,11 +87,12 @@ def addstudent(requestData):
     if studentManage.objects.filter(studentCode=studentCode).values():
         return JsonResponse({'ret': 1, 'data': '已有相同学号,请检查！'})
     else:
+        updateTeacherName = teacherData.objects.filter(user_name=userName).values()[0]['teacher_name']
         if studentManage.objects.create(studentCode=studentCode, studentName=studentName, studentSex=studentSex,
                                         studentNativePlace=studentNativePlace,
                                         studentPhone=studentPhone, employmentStatus=employmentStatus,
                                         studentSalary=studentSalary,
-                                        teacherName=teacherName, teacherPhone=teacherPhone,
+                                        teacherName=teacherName, teacherPhone=teacherPhone, updateTeacherName=updateTeacherName,
                                         studentStatus=studentStatus, professionCode=professionCode,
                                         classesCode=classesCode, enterpriseCode=enterpriseCode,
                                         postCode=postCode, postDuty=postDuty):
@@ -118,6 +120,7 @@ def editStudent(requestData):
     :param requestData:
     :return:
     """
+    userName = requestData['username']
     studentCode = requestData['studentCode']
     studentName = requestData['studentName']
     studentSex = requestData['studentSex']
@@ -193,12 +196,13 @@ def editStudent(requestData):
                                         recordTeacher=recordTeacher,
                                         enterpriseName=enterpriseName, postName=postName, postDuty=postDuty,
                                         remarks=remarks)
+    updateTeacherName = teacherData.objects.filter(user_name=userName).values()[0]['teacher_name']
     if studentManage.objects \
             .filter(studentCode=studentCode) \
             .update(studentName=studentName, studentSex=studentSex, studentNativePlace=studentNativePlace,
                     professionCode=professionCode,
                     classesCode=classesCode, studentPhone=studentPhone, studentStatus=studentStatus,
-                    teacherName=teacherName, teacherPhone=teacherPhone, employmentStatus=employmentStatus,
+                    teacherName=teacherName, teacherPhone=teacherPhone, employmentStatus=employmentStatus, updateTeacherName=updateTeacherName,
                     studentSalary=studentSalary, enterpriseCode=enterpriseCode, postCode=postCode,
                     postDuty=postDuty,
                     remarks=remarks):
@@ -302,48 +306,17 @@ def getProfessionAndClassesCascaderOptions(requestData):
     :param requestData:
     :return:
     """
-
-    # 合成专业数据
-    professionData = []  # 临时存放专业数据
-    for i in professionManage.objects.filter(isDelete=False).values():
-        professionCode = i['professionCode']
-        professionName = i['professionName']
-        professionData.append({'value': str(professionCode), 'label': professionName, 'disabled': True})
-
-    # 提取绑定关系数据
-    bindData = []
-    for i in classesBindProfession.objects.filter(isDelete=False).values():
-        for ii in classesManage.objects.values():
-            if i['classesCode'] == ii['classesCode']:
-                classesCode = ii['classesCode']
-                classesName = ii['classesName']
-                professionCode = i['professionCode']
-                bindData.append(
-                    {'value': str(classesCode), 'label': classesName, 'professionCode': str(professionCode)})
-
-    # # 合成班级数据
-    classesData = []
-    for i in professionData:
-        childrenData = []
-        for ii in bindData:
-            classesCode = ii['value']
-            classesName = ii['label']
-            if i['value'] == ii['professionCode']:
-                childrenData.append({'value': str(classesCode), 'label': classesName})
-        classesData.append({'professionCode': i['value'], 'children': childrenData})
-
-    # 合成最终数据
-    professionContainer = []  # 专业容器包含班级子容器 value:专业编号 label:专业名称
-    for i in professionData:
-        for ii in bindData:
-            if i['value'] == ii['professionCode']:
-                # classesContainer = []  # 班级要嵌套到专业父容器中 value: 班级编号 label: 班级名称
-                i['disabled'] = False
-                for iii in classesData:
-                    if iii['professionCode'] == ii['professionCode']:
-                        i.update({'children': iii['children']})
-        professionContainer.append(i)
-
+    professionContainer = []
+    for profession in professionManage.objects.filter(isDelete=False).values():
+        kk = {'value': profession['professionCode'], 'label': profession['professionName'], 'disabled': True, 'children': []}
+        classesList = []
+        for classes in classesManage.objects.filter(professionCode=profession['professionCode'], isDelete=False).order_by('classesLevel').values():
+            classesList.append({'value': classes['classesCode'], 'label': classes['classesName']})
+        if len(classesList) > 0:
+            kk.update({'disabled': False, 'children': classesList})
+        else:
+            kk.update({'disabled': True, 'children': []})
+        professionContainer.append(kk)
     return JsonResponse({'ret': 0, 'data': professionContainer})
 
 

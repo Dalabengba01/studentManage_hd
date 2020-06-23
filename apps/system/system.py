@@ -6,7 +6,7 @@ from django.http import JsonResponse
 
 from utils.tools import getIndex
 from .models import teacherData, systemLogs, editLocked, professionManage, classesManage, enterpriseManage, \
-    enterprisePost, studentManage, studentPostTrack, classesBindProfession, postBindEnterprise
+    enterprisePost, studentManage, studentPostTrack
 
 
 # 系统初始化
@@ -236,19 +236,19 @@ def systemDataRecovery(requestData):
     if operationType == '删除专业':
         # 此条数据标记为不删除
         professionManage.objects.filter(professionCode=dataRecord['professionCode']).update(isDelete=False)
-        classesBindProfession.objects.filter(professionCode=dataRecord['professionCode']).update(isDelete=False)
+        classesManage.objects.filter(professionCode=dataRecord['professionCode']).update(isDelete=False)
 
     if operationType == '删除班级':
         classesManage.objects.filter(classesCode=dataRecord['classesCode']).update(isDelete=False)
-        classesBindProfession.objects.filter(classesCode=dataRecord['classesCode']).update(isDelete=False)
+        classesManage.objects.filter(classesCode=dataRecord['classesCode']).update(isDelete=False)
 
     if operationType == '删除企业':
         enterpriseManage.objects.filter(enterpriseCode=dataRecord['enterpriseCode']).update(isDelete=False)
-        postBindEnterprise.objects.filter(enterpriseCode=dataRecord['enterpriseCode']).update(isDelete=False)
+        enterprisePost.objects.filter(enterpriseCode=dataRecord['enterpriseCode']).update(isDelete=False)
 
     if operationType == '删除岗位':
         enterprisePost.objects.filter(postCode=dataRecord['postCode']).update(isDelete=False)
-        postBindEnterprise.objects.filter(postCode=dataRecord['postCode']).update(isDelete=False)
+        enterprisePost.objects.filter(postCode=dataRecord['postCode']).update(isDelete=False)
 
     if operationType == '删除学生':
         studentManage.objects.filter(studentCode=dataRecord['studentCode']).update(isDelete=False)

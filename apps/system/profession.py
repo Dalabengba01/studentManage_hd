@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from .models import professionManage, classesManage, classesBindProfession, \
+from .models import professionManage, classesManage, \
     studentManage
 from utils.tools import getIndex, listSplit
 
@@ -45,16 +45,10 @@ def deleteProfession(requestData):
     :return:
     """
     professionCode = requestData['professionCode']
-    # 删除专业下的班级
-    classesCodeList = [i['classesCode'] for i in
-                       list(classesBindProfession.objects.filter(professionCode=professionCode).values())]
-    lock = 0
-    codeLen = len(classesCodeList)
-    for i in classesCodeList:
+    for i in list(classesManage.objects.filter(professionCode=professionCode, isDelete=False).values()):
         classesManage.objects.filter(classesCode=i).update(isDelete=True)
-        lock = lock + 1
-    if lock == codeLen and professionManage.objects.filter(professionCode=professionCode).update(isDelete=True) and \
-            classesBindProfession.objects.filter(professionCode=professionCode).update(isDelete=True):
+    if professionManage.objects.filter(professionCode=professionCode).update(isDelete=True) and \
+            classesManage.objects.filter(professionCode=professionCode).update(isDelete=True):
         studentManage.objects.filter(professionCode=professionCode).update(professionCode='0', classesCode='0')
 
         return JsonResponse({'ret': 0, 'data': '删除专业成功！'})
@@ -73,49 +67,16 @@ def getProfessionData(requestData):
     pageNum = queryData['pageNum']  # 当前页数
     pageSize = queryData['pageSize']  # 一页多少数据
 
-    # 分析专业容器绑定哪些班级子容器
-    professionData = []  # 专业容器(其中包班级子容器)
-    for i in professionManage.objects.filter(professionName__contains=keyWord, isDelete=False).values():
-        classesData = {}  # 班级子容器,一次外层for循环代表一个专业容器，并把这个子容器加入到父容器
-        hh = []  # 班级数据容器(可容纳多个班级)
-        for ii in classesBindProfession.objects.filter(isDelete=False).values():
-            if str(i['professionCode']) == str(ii['professionCode']):
-                classesData = {'classesCode': ii['classesCode']}
-                hh.append(classesData)
-        professionData.append({'professionCode': i['professionCode'], 'classesData': hh})
-
-    professionContainer = []
-    # 自定义分页(提高系统运行速度)
-    professions = list(professionManage.objects.filter(isDelete=False).values())
-    myData = listSplit(professions, pageSize, pageNum)
-    for i in myData['currentData']:
-        hh = []
-        professionCode = i['professionCode']
-        professionName = i['professionName']
-        addTime = i['addTime']
-        professionClassesNum = 0
-        for ii in professionData:
-            if str(i['professionCode']) == str(ii['professionCode']):
-                professionClassesNum = len(ii['classesData'])
-                professionHumanNum = 0
-                for iii in ii['classesData']:
-                    classesCode = iii['classesCode']
-                    professionHumanNum = professionHumanNum + len(
-                        studentManage.objects.filter(classesCode=classesCode, isDelete=False).values())
-                classesData = {'professionCode': professionCode, 'professionName': professionName,
-                               'professionHumanNum': professionHumanNum, 'professionClassesNum': professionClassesNum,
-                               'addTime': addTime}
-                hh.append(classesData)
-        professionContainer.append(hh)
-
-    userList = []
-    for i in professionContainer:
-        for ii in i:
-            userList.append(ii)
+    professionData = []
+    for profession in professionManage.objects.filter(professionName__contains=keyWord, isDelete=False).values():
+        professionClassesNum = classesManage.objects.filter(professionCode=profession['professionCode'],  isDelete=False).count()
+        professionHumanNum = studentManage.objects.filter(professionCode=profession['professionCode'],  isDelete=False).count()
+        profession.update({'professionClassesNum': professionClassesNum, 'professionHumanNum': professionHumanNum})
+        professionData.append(profession)
 
     return JsonResponse({
         'ret': 0,
-        'data': userList,
+        'data': professionData,
         'pageNum': pageNum,
-        'total': myData['dataSum'],
+        'total': len(professionData),
     })

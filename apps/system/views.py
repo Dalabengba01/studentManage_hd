@@ -14,6 +14,7 @@ def user(request):
     """
 
     # GET请求 参数在url中，通过request 对象的 GET属性获取
+    global requestData
     if request.method == 'GET':
         request.params = request.GET
 

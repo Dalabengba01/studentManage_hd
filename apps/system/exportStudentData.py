@@ -8,7 +8,7 @@ from .models import studentManage, professionManage, classesManage, enterprisePo
 
 def getexportStudentData(request):
     """
-    导出学生数据为Excel表格(学生数据=基本数据+已就业数据|未就业数据)
+    导出学生数据为Excel表格(学生数据=基本数据+已就业数据|未就业数据),新增sheet包含专业，班级 ，企业，岗位详细信息
     :param request: 包含用户请求的参数
     :return: 返回文件流对象
     """
@@ -22,48 +22,51 @@ def getexportStudentData(request):
     if searchType in ['全部', '参军', '待安置', '已安置', '拟升学']:
 
         if searchType == '全部':
-            subData0 = list(obj.filter().values())
+            subData0 = list(obj.filter(isDelete=False).values())
 
         if searchType == '参军':
-            subData0 = list(obj.filter(employmentStatus='参军').values())
+            subData0 = list(obj.filter(isDelete=False, employmentStatus='参军').values())
 
         if searchType == '待安置':
-            subData0 = list(obj.filter(employmentStatus='待安置').values())
+            subData0 = list(obj.filter(isDelete=False, employmentStatus='待安置').values())
 
         if searchType == '已安置':
-            subData0 = list(obj.filter(employmentStatus='已安置').values())
+            subData0 = list(obj.filter(isDelete=False, employmentStatus='已安置').values())
 
         if searchType == '拟升学':
-            subData0 = list(obj.filter(employmentStatus='拟升学').values())
+            subData0 = list(obj.filter(isDelete=False, employmentStatus='拟升学').values())
 
     userList = []
     for i in subData0:
         # 获取所属专业,班级名称，班级届数并合并到学生信息列表中
-        for ii in obj.filter(studentCode=i['studentCode']).values():
+        for ii in obj.filter(isDelete=False, studentCode=i['studentCode']).values():
             if ii['classesCode'] != '0':
                 studentLevel = ''
                 toClasses = ''
                 toProfession = ''
-                for iii in classesManage.objects.filter(classesCode=ii['classesCode']).values():
+                for iii in classesManage.objects.filter(isDelete=False, classesCode=ii['classesCode']).values():
                     studentLevel = iii['classesLevel']
                     toClasses = iii['classesName']
-                for iiii in professionManage.objects.filter(professionCode=ii['professionCode']).values():
+                for iiii in professionManage.objects.filter(isDelete=False,
+                                                            professionCode=ii['professionCode']).values():
                     toProfession = iiii['professionName']
                 i.update({'studentLevel': studentLevel, 'toProfession': toProfession, 'toClasses': toClasses})
             else:
                 i.update({'studentLevel': '未绑定', 'toProfession': '未绑定', 'toClasses': '未绑定'})
 
         # 获取岗位信息和企业信息
-        for studentBindData in list(obj.filter(studentCode=i['studentCode']).values()):
+        for studentBindData in list(obj.filter(isDelete=False, studentCode=i['studentCode']).values()):
             if studentBindData['postCode'] != '0':
-                for postData in list(enterprisePost.objects.filter(postCode=studentBindData['postCode']).values()):
-                    i.update({'postName': postData['postName'], 'postAddress': postData['postAddress']})
+                for postData in list(
+                        enterprisePost.objects.filter(isDelete=False, postCode=studentBindData['postCode']).values()):
+                    i.update({'postDuty': postData['postDuty'], 'postName': postData['postName'], 'postAddress': postData['postAddress']})
             else:
-                i.update({'postName': '未绑定', 'postAddress': '未绑定'})
+                i.update({'postDuty': '未绑定', 'postName': '未绑定', 'postAddress': '未绑定'})
 
             if studentBindData['enterpriseCode'] != '0':
                 for enterpriseData in list(
-                        enterpriseManage.objects.filter(enterpriseCode=studentBindData['enterpriseCode']).values()):
+                        enterpriseManage.objects.filter(isDelete=False,
+                                                        enterpriseCode=studentBindData['enterpriseCode']).values()):
                     i.update({'enterpriseName': enterpriseData['enterpriseName'],
                               'enterpriseAddress': enterpriseData['enterpriseAddress'],
                               'enterprisePhone': enterpriseData['enterprisePhone']})
@@ -96,16 +99,19 @@ def getexportStudentData(request):
     if len(excelData) > 0:
         # 创建工作薄
         ws = Workbook(encoding='utf-8')
-        w = ws.add_sheet(u"学生数据")
+        student = ws.add_sheet(u"学生数据")
         # 设置列宽
-        colWidth = [256 * 10, 256 * 10, 256 * 20, 256 * 15, 256 * 10, 256 * 10, 256 * 10, 256 * 25, 256 * 20, 256 * 20,
-                    256 * 25, 256 * 22]
+        colWidth = [256 * 10, 256 * 25, 256 * 20, 256 * 10, 256 * 15, 256 * 30, 256 * 20, 256 * 25, 256 * 25, 256 * 20,
+                    256 * 30, 256 * 30, 256 * 20, 256 * 20, 256 * 25, 256 * 30, 256 * 20, 256 * 20, 256 * 20, 256 * 20,
+                    256 * 15,
+                    256 * 30,
+                    256 * 30]
         colNum = 0
         for i in colWidth:
-            w.col(colNum).width = i
+            student.col(colNum).width = i
             colNum = colNum + 1
         # 设置行高
-        w.row(0).set_style(easyxf('font:height 720'))
+        student.row(0).set_style(easyxf('font:height 720'))
 
         # 设置单元格样式(对其方式)内容样式
         style = XFStyle()  # 创建一个样式对象，初始化样式
@@ -136,31 +142,17 @@ def getexportStudentData(request):
         style1.alignment = al
 
         # 设置表头
-        w.write(1, 0, "序号", style)
-        w.write(1, 1, "学生学号", style)
-        w.write(1, 2, "学生姓名", style)
-        w.write(1, 3, "学生性别", style)
-        w.write(1, 4, "学生届数", style)
-        w.write(1, 5, "所属专业", style)
-        w.write(1, 6, "所属班级", style)
-        w.write(1, 7, "学生籍贯", style)
-        w.write(1, 8, "学生电话", style)
-        w.write(1, 9, "就业状态", style)
-        w.write(1, 10, "企业名称", style)
-        w.write(1, 11, "企业地址", style)
-        w.write(1, 12, "企业电话", style)
-        w.write(1, 13, "岗位名称", style)
-        w.write(1, 14, "工作地址", style)
-        w.write(1, 15, "最新薪资", style)
-        w.write(1, 16, "直属主管", style)
-        w.write(1, 17, "主管电话", style)
-        w.write(1, 18, "学生状态", style)
-        w.write(1, 19, "修改时间", style)
+        tableHeader = ['序号', '学生学号', '学生姓名', '学生性别', '学生届数', '所属专业', '所属班级', '学生籍贯', '学生电话', '就业状态', '企业名称', '企业地址',
+                       '企业联系方式', '岗位名称', '工作地址', '岗位职责', '最新薪资', '直属主管', '主管电话', '更新教师', '学生状态', '备注', '修改时间']
+        col = 0
+        for i in tableHeader:
+            student.write(1, col, i, style)
+            col = col + 1
 
         # 写入数据(第一行是标题，第二行表头，第三行开始写数据)
         excel_row = 2
 
-        w.write_merge(0, 0, 0, 12, excelTitle, style1)
+        student.write_merge(0, 0, 0, 12, excelTitle, style1)
         index = 0
         for obj in excelData:
             index = index + 1
@@ -178,34 +170,152 @@ def getexportStudentData(request):
             enterprisePhone = obj['enterprisePhone']
             postName = obj['postName']
             postAddress = obj['postAddress']
+            postDuty = obj['postDuty']
             studentSalary = obj['studentSalary']
             teacherName = obj['teacherName']
             teacherPhone = obj['teacherPhone']
+            updateTeacherName = obj['updateTeacherName']
             studentStatus = obj['studentStatus']
+            remarks = obj['remarks']
             addTime = obj['addTime'].strftime("%Y-%m-%d %H:%M:%S")[:19]
 
-            w.write(excel_row, 0, index, style)
-            w.write(excel_row, 1, studentCode, style)
-            w.write(excel_row, 2, studentName, style)
-            w.write(excel_row, 3, studentSex, style)
-            w.write(excel_row, 4, studentLevel, style)
-            w.write(excel_row, 5, toProfession, style)
-            w.write(excel_row, 6, toClasses, style)
-            w.write(excel_row, 7, studentNativePlace, style)
-            w.write(excel_row, 8, studentPhone, style)
-            w.write(excel_row, 9, employmentStatus, style)
-            w.write(excel_row, 10, enterpriseName, style)
-            w.write(excel_row, 11, enterpriseAddress, style)
-            w.write(excel_row, 12, enterprisePhone, style)
-            w.write(excel_row, 13, postName, style)
-            w.write(excel_row, 14, postAddress, style)
-            w.write(excel_row, 15, studentSalary, style)
-            w.write(excel_row, 16, teacherName, style)
-            w.write(excel_row, 17, teacherPhone, style)
-            w.write(excel_row, 18, studentStatus, style)
-            w.write(excel_row, 19, addTime, style)
-
+            student.write(excel_row, 0, index, style)
+            student.write(excel_row, 1, studentCode, style)
+            student.write(excel_row, 2, studentName, style)
+            student.write(excel_row, 3, studentSex, style)
+            student.write(excel_row, 4, studentLevel, style)
+            student.write(excel_row, 5, toProfession, style)
+            student.write(excel_row, 6, toClasses, style)
+            student.write(excel_row, 7, studentNativePlace, style)
+            student.write(excel_row, 8, studentPhone, style)
+            student.write(excel_row, 9, employmentStatus, style)
+            student.write(excel_row, 10, enterpriseName, style)
+            student.write(excel_row, 11, enterpriseAddress, style)
+            student.write(excel_row, 12, enterprisePhone, style)
+            student.write(excel_row, 13, postName, style)
+            student.write(excel_row, 14, postAddress, style)
+            student.write(excel_row, 15, postDuty, style)
+            student.write(excel_row, 16, studentSalary, style)
+            student.write(excel_row, 17, teacherName, style)
+            student.write(excel_row, 18, teacherPhone, style)
+            student.write(excel_row, 19, updateTeacherName, style)
+            student.write(excel_row, 20, studentStatus, style)
+            student.write(excel_row, 21, remarks, style)
+            student.write(excel_row, 22, addTime, style)
             excel_row += 1
+
+        ####################### 专业班级数据 #######################
+        # 合成专业班级数据
+        professionData = []
+        for profession in list(professionManage.objects.filter(isDelete=False).values()):
+            for classes in classesManage.objects.filter(professionCode=profession['professionCode'],
+                                                        isDelete=False).values():
+                professionData.append(
+                    {'professionCode': profession['professionCode'], 'professionName': profession['professionName'],
+                     'classesLevel': classes['classesLevel'], 'classesCode': classes['classesCode'],
+                     'classesName': classes['classesName']})
+
+        profession = ws.add_sheet(u"专业班级数据")
+        # 设置列宽
+        colWidth = [256 * 10, 256 * 25, 256 * 15, 256 * 20]
+        colNum = 0
+        for i in colWidth:
+            profession.col(colNum).width = i
+            colNum = colNum + 1
+        # 设置行高
+        profession.row(0).set_style(easyxf('font:height 720'))
+        # 设置表头
+        tableHeader = ['序号', '专业名称', '班级届数', '班级名称']
+        col = 0
+        for i in tableHeader:
+            profession.write(1, col, i, style)
+            col = col + 1
+
+        # 写入数据(第一行是标题，第二行表头，第三行开始写数据)
+        excel_row = 2
+
+        profession.write_merge(0, 0, 0, 12, '中兴创新学院学生就业管理系统(专业班级数据)', style1)
+        index = 0
+        for obj in professionData:
+            index = index + 1
+            professionName = obj['professionName']
+            classesLevel = obj['classesLevel']
+            classesName = obj['classesName']
+
+            profession.write(excel_row, 0, index, style)
+            profession.write(excel_row, 1, professionName, style)
+            profession.write(excel_row, 2, classesLevel, style)
+            profession.write(excel_row, 3, classesName, style)
+            excel_row += 1
+
+        ####################### 企业岗位数据 #######################
+        enterpriseData = []
+        for enterprise in list(enterpriseManage.objects.filter(isDelete=False).values()):
+            for post in list(enterprisePost.objects.filter(enterpriseCode=enterprise['enterpriseCode'],
+                                                           isDelete=False).values()):
+                enterpriseData.append(
+                    {'enterpriseName': enterprise['enterpriseName'], 'enterpriseScale': enterprise['enterpriseScale'],
+                     'goodGrade': enterprise['goodGrade'], 'enterpriseContacts': enterprise['enterpriseContacts'],
+                     'enterprisePhone': enterprise['enterprisePhone'],
+                     'enterpriseAddress': enterprise['enterpriseAddress'], 'remarks': enterprise['remarks'],
+                     'skyEyeScore': enterprise['skyEyeScore'],
+                     'postName': post['postName'],
+                     'postAddress': post['postAddress'], 'salaryTreatment': post['salaryTreatment'],
+                     'recruitCount': post['recruitCount']})
+
+        enterprise = ws.add_sheet(u"企业岗位数据")
+        # 设置列宽
+        colWidth = [256 * 10, 256 * 30, 256 * 10, 256 * 10, 256 * 15, 256 * 30, 256 * 30, 256 * 20, 256 * 10, 256 * 10,
+                    256 * 30, 256 * 30]
+        colNum = 0
+        for i in colWidth:
+            enterprise.col(colNum).width = i
+            colNum = colNum + 1
+        # 设置行高
+        enterprise.row(0).set_style(easyxf('font:height 720'))
+        # 设置表头
+        tableHeader = ['序号', '企业名称', '企业规模', '优质等级', '联系人姓名', '联系方式', '企业地址', '备注', '天眼查分数', '岗位名称', '工作地点', '工资待遇',
+                       '招聘人数']
+        col = 0
+        for i in tableHeader:
+            enterprise.write(1, col, i, style)
+            col = col + 1
+
+        # 写入数据(第一行是标题，第二行表头，第三行开始写数据)
+        excel_row = 2
+
+        enterprise.write_merge(0, 0, 0, 12, '中兴创新学院学生就业管理系统(企业岗位数据)', style1)
+        index = 0
+        for obj in enterpriseData:
+            index = index + 1
+            enterpriseName = obj['enterpriseName']
+            enterpriseScale = obj['enterpriseScale']
+            goodGrade = obj['goodGrade']
+            enterpriseContacts = obj['enterpriseContacts']
+            enterprisePhone = obj['enterprisePhone']
+            enterpriseAddress = obj['enterpriseAddress']
+            remarks = obj['remarks']
+            skyEyeScore = obj['skyEyeScore']
+            postName = obj['postName']
+            postAddress = obj['postAddress']
+            salaryTreatment = obj['salaryTreatment']
+            recruitCount = obj['recruitCount']
+
+            enterprise.write(excel_row, 0, index, style)
+            enterprise.write(excel_row, 1, enterpriseName, style)
+            enterprise.write(excel_row, 2, enterpriseScale, style)
+            enterprise.write(excel_row, 3, goodGrade, style)
+            enterprise.write(excel_row, 4, enterpriseContacts, style)
+            enterprise.write(excel_row, 5, enterprisePhone, style)
+            enterprise.write(excel_row, 6, enterpriseAddress, style)
+            enterprise.write(excel_row, 7, remarks, style)
+            enterprise.write(excel_row, 8, skyEyeScore, style)
+            enterprise.write(excel_row, 9, postName, style)
+            enterprise.write(excel_row, 10, postAddress, style)
+            enterprise.write(excel_row, 11, salaryTreatment, style)
+            enterprise.write(excel_row, 12, recruitCount, style)
+            excel_row += 1
+
         # 检测文件是够存在
         # 方框中代码是保存本地文件使用，如不需要请删除该代码
         ###########################

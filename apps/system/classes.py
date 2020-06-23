@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from .models import professionManage, classesManage, classesBindProfession, studentManage
+from .models import professionManage, classesManage, studentManage
 from utils.tools import getIndex, listSplit
 
 
@@ -18,12 +18,8 @@ def addClasses(requestData):
     else:
         index = getIndex(classesManage, 'classesCode')
         if classesManage.objects.create(classesCode=index, classesName=classesName,
-                                        classesLevel=requestData['classesLevel']):
-            classesCode = list(classesManage.objects.filter(classesName=classesName).values())[0]['classesCode']
-            if classesBindProfession.objects.filter(classesCode=classesCode).count() > 0:
-                return JsonResponse({'ret': 1, 'data': '已经绑定专业,无需重复绑定!'})
-            if classesBindProfession.objects.create(classesCode=classesCode, professionCode=professionCode):
-                return JsonResponse({'ret': 0, 'data': '添加班级成功！'})
+                                        classesLevel=requestData['classesLevel'], professionCode=professionCode):
+            return JsonResponse({'ret': 0, 'data': '添加班级成功！'})
         else:
             return JsonResponse({'ret': 1, 'data': '添加班级失败,请稍后重试！'})
 
@@ -48,8 +44,7 @@ def deleteClasses(requestData):
     :return:
     """
     classesCode = requestData['classesCode']
-    if classesManage.objects.filter(classesCode=classesCode).update(isDelete=True) and classesBindProfession.objects.filter(
-            classesCode=classesCode).update(isDelete=True):
+    if classesManage.objects.filter(classesCode=classesCode).update(isDelete=True):
         studentManage.objects.filter(classesCode=classesCode).update(classesCode='0', professionCode='0')
         # 需要重置已绑定专业的班级还有学生
         return JsonResponse({'ret': 0, 'data': '删除班级成功！'})
@@ -67,17 +62,17 @@ def getclassesData(requestData):
     keyWord = queryData['keyWord']  # 查询的关键词
     pageNum = queryData['pageNum']  # 当前页数
     pageSize = queryData['pageSize']  # 一页多少数据
-    classObj = classesManage.objects
 
+    classObj = classesManage.objects
     classesData = []
     classesList = list(classObj.filter(classesName__contains=keyWord, isDelete=False).values())
     myData = listSplit(classesList, pageSize, pageNum)  # 自定义分页(提高系统运行速度)
     for classes in myData['currentData']:
-        for bind in classesBindProfession.objects.filter(classesCode=classes['classesCode'], isDelete=False).values():
-            for profession in professionManage.objects.filter(professionCode=bind['professionCode'], isDelete=False).values():
-                classes.update({'toProfession': profession['professionName']})
-            studentCount = studentManage.objects.filter(classesCode=classes['classesCode'], isDelete=False).count()
-            classes.update({'classesHumanNum': studentCount})
+        for profession in professionManage.objects.filter(professionCode=classes['professionCode'],
+                                                          isDelete=False).values():
+            classes.update({'toProfession': profession['professionName']})
+        studentCount = studentManage.objects.filter(classesCode=classes['classesCode'], isDelete=False).count()
+        classes.update({'classesHumanNum': studentCount})
         classesData.append(classes)
 
     return JsonResponse({
@@ -106,70 +101,25 @@ def getProfessionAndClassesLevelDataCascaderOptions(requestData):
     :param requestData:
     :return:
     """
-
-    # 合成专业数据
-    global classesLevelData
-    professionData = []  # 临时存放专业数据
-    for i in professionManage.objects.filter(isDelete=False).values():
-        professionCode = i['professionCode']
-        professionName = i['professionName']
-        professionData.append({'value': str(professionCode), 'label': professionName, 'disabled': True})
-
-    # 提取绑定关系数据
-    bindData = []
-    for i in classesBindProfession.objects.filter(isDelete=False).values():
-        for ii in classesManage.objects.values():
-            if i['classesCode'] == ii['classesCode']:
-                classesCode = ii['classesCode']
-                classesName = ii['classesName']
-                classesLevel = ii['classesLevel']
-                professionCode = i['professionCode']
-                bindData.append(
-                    {'value': str(classesCode), 'label': classesName, 'classesLevel': classesLevel,
-                     'professionCode': str(professionCode)})
-
-    # 提取班级届数
-    classesLevelList = []
-    for i in bindData:
-        if i['classesLevel'] not in classesLevelList:
-            classesLevelList.append(i['classesLevel'])
-
-    # 合成班级数据
-    classesData = []
-    for i in professionData:
-        allClasses = []
-        for ii in bindData:
-            classesCode = ii['value']
-            classesName = ii['label']
-            classesLevel = ii['classesLevel']
-            if i['value'] == ii['professionCode']:
-                allClasses.append(
-                    {'professionCode': ii['professionCode'], 'value': str(classesCode), 'label': classesName,
-                     'classesLevel': classesLevel})
-
-        # 班级届数分类
-        for iii in classesLevelList:
-            classes = []
-            professionCode = 0
-            for iiii in allClasses:
-                if iii == iiii['classesLevel']:
-                    professionCode = iiii['professionCode']
-                    classes.append(iiii)
-            classesData.append(
-                {'professionCode': professionCode, 'value': iii, 'label': iii + '届', 'children': classes})
-
-    # 合成最终数据
-    professionContainer = []  # 专业容器包含班级子容器 value:专业编号 label:专业名称
-    for i in professionData:
-        professions = []
-        for ii in classesData:
-            if str(ii['professionCode']) == str(i['value']):
-                i['disabled'] = False
-                professions.append(ii)
-        professionContainer.append(
-            {'value': i['value'], 'label': i['label'], 'children': professions, 'disabled': False})
-
-    return JsonResponse({'ret': 0, 'data': professionContainer})
+    data = []
+    for profession in professionManage.objects.filter(isDelete=False).values():
+        # 最外层专业
+        professionList = {'value': profession['professionCode'], 'label': profession['professionName'], 'disabled': True, 'children': []}
+        kk = []
+        zz = {}
+        for level in classesManage.objects.filter(professionCode=profession['professionCode'], isDelete=False).order_by('classesLevel').values():
+            # 中间的届数
+            levelClasses = [{'value': i['classesCode'], 'label': i['classesName']} for i in classesManage.objects.filter(classesLevel=level['classesLevel'], professionCode=profession['professionCode'], isDelete=False).order_by('classesLevel').values()]
+            if len(levelClasses) > 0:
+                zz = {'value': level['classesLevel'], 'label': level['classesLevel'] + '届', 'disabled': False, 'children': levelClasses}
+            else:
+                zz = {'value': level['classesLevel'], 'label': level['classesLevel'] + '届', 'disabled': False, 'children': levelClasses}
+            if zz not in kk:
+                kk.append(zz)
+        professionList.update({'disabled': False, 'children': kk})
+        data.append(professionList)
+    print(data)
+    return JsonResponse({'ret': 0, 'data': data})
 
 
 def getProfessionAndClassesDataCascaderOptions(requestData):
@@ -179,15 +129,18 @@ def getProfessionAndClassesDataCascaderOptions(requestData):
     :return:
     """
     data = []
-    for i in list(professionManage.objects.filter(isDelete=False).values()):
-        professions = []
-        for ii in list(classesBindProfession.objects.filter(isDelete=False).values()):
-            if str(i['professionCode']) == str(ii['professionCode']):
-                for iii in list(classesManage.objects.filter(classesCode=ii['classesCode'], isDelete=False).values()):
-                    if str(iii['classesCode']) == str(ii['classesCode']):
-                        if {'value': iii['classesLevel'], 'label': iii['classesLevel'] + '届'} not in professions:
-                            professions.append({'value': iii['classesLevel'], 'label': iii['classesLevel'] + '届'})
-        data.append(
-            {'value': i['professionCode'], 'label': i['professionName'], 'disabled': False, 'children': professions})
-
+    for profession in professionManage.objects.filter(isDelete=False).values():
+        professionList = {'value': profession['professionCode'], 'label': profession['professionName'],
+                          'disabled': True, 'children': []}
+        classesLevelList = []
+        kk = []
+        for classes in classesManage.objects.filter(professionCode=profession['professionCode'],
+                                                    isDelete=False).order_by('classesLevel').values():
+            if classes['classesLevel'] + '届' not in kk:
+                kk.append(classes['classesLevel'] + '届')
+                classesLevelList.append({'value': classes['classesLevel'], 'label': classes['classesLevel'] + '届'})
+        if len(classesLevelList) > 0:
+            professionList.update({'disabled': False, 'children': classesLevelList})
+        data.append(professionList)
     return JsonResponse({'ret': 0, 'data': data})
+

@@ -1,11 +1,14 @@
 from django.db import models
 
+
 class BaseModels(models.Model):
     """模型类自定义抽象基类"""
+
     class Meta:
         abstract = True
 
     isDelete = models.BooleanField(verbose_name='是否删除', default=False)
+
 
 class teacherData(models.Model):
     """系统初始化的教师管理账户"""
@@ -35,6 +38,7 @@ class enterpriseManage(BaseModels):
     enterprisePhone = models.CharField('企业电话', max_length=100)
     enterpriseAddress = models.CharField('企业地址', max_length=400)
     skyEyeScore = models.CharField('天眼查分值', max_length=8)
+    goodGrade = models.CharField('优良等级', max_length=30)
     remarks = models.CharField('备注', max_length=400)
     addTime = models.DateField(auto_now=True, verbose_name="更新日期")
 
@@ -46,11 +50,12 @@ class enterprisePost(BaseModels):
         verbose_name = '企业岗位表'
         verbose_name_plural = verbose_name
 
-    postCode = models.IntegerField('岗位编号', primary_key=True)
+    postCode = models.CharField('岗位编号', max_length=30, primary_key=True)
     postName = models.CharField('岗位名称', max_length=200)
     recruitCount = models.CharField('招聘人数', max_length=30)
     postAddress = models.CharField('工作地点', max_length=30)
     salaryTreatment = models.CharField('工资待遇', max_length=400)
+    enterpriseCode = models.CharField('企业编号', max_length=30)
     addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
 
 
@@ -61,7 +66,7 @@ class professionManage(BaseModels):
         verbose_name = '专业管理相关数据'
         verbose_name_plural = verbose_name
 
-    professionCode = models.IntegerField('专业编号', primary_key=True)
+    professionCode = models.CharField('专业编号', max_length=30, primary_key=True)
     professionName = models.CharField('专业名称', max_length=21)
     addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
 
@@ -73,9 +78,10 @@ class classesManage(BaseModels):
         verbose_name = '班级管理相关数据'
         verbose_name_plural = verbose_name
 
-    classesCode = models.IntegerField('班级编号', primary_key=True)
+    classesCode = models.CharField('班级编号', max_length=30, primary_key=True)
     classesLevel = models.CharField('班级届数', max_length=21)
     classesName = models.CharField('班级名称', max_length=21)
+    professionCode = models.CharField('专业编号', max_length=30)
     addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
 
 
@@ -96,6 +102,7 @@ class studentManage(BaseModels):
     teacherName = models.CharField('直属主管', max_length=30)
     teacherPhone = models.CharField('主管电话', max_length=11)
     studentStatus = models.CharField('学生状态', max_length=10)
+    updateTeacherName = models.CharField('更新教师', max_length=30)
     # 学生绑定企业岗位
     postCode = models.CharField('岗位编号', max_length=30)
     enterpriseCode = models.CharField('企业编号', max_length=30)
@@ -119,29 +126,6 @@ class studentPostTrack(BaseModels):
     studentSalary = models.IntegerField('实习薪资')
     remarks = models.CharField('备注', max_length=400)
     addTime = models.DateTimeField(auto_now_add=True, verbose_name="修改时间")
-
-
-class classesBindProfession(BaseModels):
-    """班级绑定专业表"""
-
-    class Meta:
-        verbose_name = '班级绑定专业相关数据'
-        verbose_name_plural = verbose_name
-
-    classesCode = models.IntegerField('班级编号', primary_key=True)
-    professionCode = models.CharField('专业编号', max_length=30)
-    addTime = models.DateField(auto_now_add=True, verbose_name="创建时间")
-
-
-class postBindEnterprise(BaseModels):
-    """岗位绑定企业"""
-
-    class Meta:
-        verbose_name = '岗位绑定企业'
-        verbose_name_plural = verbose_name
-
-    postCode = models.CharField('岗位编号', max_length=30)
-    enterpriseCode = models.CharField('企业编号', max_length=30)
 
 
 class systemLogs(models.Model):

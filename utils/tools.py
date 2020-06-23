@@ -10,7 +10,7 @@ def getIndex(model, field):
         index = 1000
     else:
         index = int(dataList[-1][field]) + 1
-    return index
+    return str(index)
 
 
 def listSplit(data, pageSize, pageNum):

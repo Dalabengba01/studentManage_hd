@@ -1,7 +1,7 @@
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 
-from .models import enterpriseManage, enterprisePost, postBindEnterprise, studentManage
+from .models import enterpriseManage, enterprisePost, studentManage
 from utils.tools import getIndex, listSplit
 
 
@@ -13,6 +13,7 @@ def addEnterprise(requestData):
     """
     enterpriseName = requestData['enterpriseName']
     enterpriseScale = requestData['enterpriseScale']
+    goodGrade = requestData['goodGrade']
     enterpriseContacts = requestData['enterpriseContacts']
     enterprisePhone = requestData['enterprisePhone']
     enterpriseAddress = requestData['enterpriseAddress']
@@ -24,7 +25,9 @@ def addEnterprise(requestData):
     else:
         index = getIndex(enterpriseManage, 'enterpriseCode')
         if enterpriseManage.objects.create(enterpriseCode=index, enterpriseName=enterpriseName,
-                                           enterpriseScale=enterpriseScale, enterpriseContacts=enterpriseContacts,
+                                           enterpriseScale=enterpriseScale,
+                                           goodGrade=goodGrade,
+                                           enterpriseContacts=enterpriseContacts,
                                            enterprisePhone=enterprisePhone, enterpriseAddress=enterpriseAddress,
                                            skyEyeScore=skyEyeScore, remarks=remarks):
             return JsonResponse({'ret': 0, 'data': '添加企业成功！'})
@@ -40,6 +43,7 @@ def editEnterprise(requestData):
     """
     enterpriseName = requestData['enterpriseName']
     enterpriseScale = requestData['enterpriseScale']
+    goodGrade = requestData['goodGrade']
     enterpriseContacts = requestData['enterpriseContacts']
     enterprisePhone = requestData['enterprisePhone']
     enterpriseAddress = requestData['enterpriseAddress']
@@ -47,6 +51,7 @@ def editEnterprise(requestData):
     remarks = requestData['remarks']
     if enterpriseManage.objects.filter(enterpriseName=enterpriseName).update(enterpriseName=enterpriseName,
                                                                              enterpriseScale=enterpriseScale,
+                                                                             goodGrade=goodGrade,
                                                                              enterpriseContacts=enterpriseContacts,
                                                                              enterprisePhone=enterprisePhone,
                                                                              enterpriseAddress=enterpriseAddress,
@@ -69,12 +74,14 @@ def getEnterpriseData(requestData):
     if keyWord == '':
         enterpriseData = list(enterpriseManage.objects.filter(isDelete=False).values())
     else:
-        enterpriseData = list(enterpriseManage.objects.filter(enterpriseName__contains=keyWord, isDelete=False).values())
+        enterpriseData = list(
+            enterpriseManage.objects.filter(enterpriseName__contains=keyWord, isDelete=False).values())
 
     # 更新该企业有多少岗位
     enterpriseList = []
     for i in enterpriseData:
-        i.update({'postCount': postBindEnterprise.objects.filter(enterpriseCode=i['enterpriseCode'], isDelete=False).count()})
+        i.update(
+            {'postCount': enterprisePost.objects.filter(enterpriseCode=i['enterpriseCode'], isDelete=False).count()})
         enterpriseList.append(i)
 
     paginator = Paginator(enterpriseList, pageSize)  # 每页显示多少数据
@@ -97,12 +104,11 @@ def deleteEnterprise(requestData):
     """
     enterpriseCode = str(requestData['enterpriseCode'])
     # 获取本企业所有岗位
-    postCode = [i['postCode'] for i in list(postBindEnterprise.objects.filter(enterpriseCode=enterpriseCode).values())
+    postCode = [i['postCode'] for i in list(enterprisePost.objects.filter(enterpriseCode=enterpriseCode).values())
                 if str(i['enterpriseCode']) == enterpriseCode]
     try:
         enterpriseManage.objects.filter(enterpriseCode=enterpriseCode).update(isDelete=True)
         for i in postCode:
-            postBindEnterprise.objects.filter(postCode=i).update(isDelete=True)
             enterprisePost.objects.filter(postCode=i).update(isDelete=True)
             studentManage.objects.filter(postCode=i).update(postCode='0', enterpriseCode='0', employmentStatus='待安置',
                                                             studentSalary=0)
@@ -137,8 +143,7 @@ def addPost(requestData):
     index = getIndex(enterprisePost, 'postCode')
     if enterprisePost.objects.create(postCode=index, postName=postName, recruitCount=recruitCount,
                                      postAddress=postAddress,
-                                     salaryTreatment=salaryTreatment) \
-            and postBindEnterprise.objects.create(postCode=index, enterpriseCode=bindEnterprise):
+                                     salaryTreatment=salaryTreatment, enterpriseCode=bindEnterprise):
         return JsonResponse({'ret': 0, 'data': '添加岗位成功！'})
     else:
         return JsonResponse({'ret': 1, 'data': '添加岗位失败,请稍后重试！'})
@@ -159,8 +164,8 @@ def editPost(requestData):
 
     if enterprisePost.objects.filter(postCode=postCode).update(postName=postName, recruitCount=recruitCount,
                                                                postAddress=postAddress,
-                                                               salaryTreatment=salaryTreatment) and postBindEnterprise.objects.filter(
-        postCode=postCode).update(enterpriseCode=bindEnterprise):
+                                                               salaryTreatment=salaryTreatment,
+                                                               enterpriseCode=bindEnterprise):
         return JsonResponse({'ret': 0, 'data': '编辑岗位成功！'})
     else:
         return JsonResponse({'ret': 1, 'data': '编辑岗位失败,请稍后重试！'})
@@ -173,11 +178,11 @@ def deletePost(requestData):
     :return:
     """
     postCode = requestData['postCode']
-    if enterprisePost.objects.filter(postCode=postCode).update(isDelete=True) and postBindEnterprise.objects.filter(
-            postCode=postCode).update(isDelete=True) and studentManage.objects.filter(postCode=postCode).update(enterpriseCode='0',
-                                                                                                   postCode='0',
-                                                                                                   employmentStatus='待安置',
-                                                                                                   studentSalary=0):
+    if enterprisePost.objects.filter(postCode=postCode).update(isDelete=True) and studentManage.objects.filter(
+            postCode=postCode).update(enterpriseCode='0',
+                                      postCode='0',
+                                      employmentStatus='待安置',
+                                      studentSalary=0):
         return JsonResponse({'ret': 0, 'data': '删除岗位成功！'})
     else:
         return JsonResponse({'ret': 1, 'data': '删除岗位失败,请稍后重试！'})
@@ -206,14 +211,15 @@ def getPostData(requestData):
 
     # 数据合成
     for post in posts:
-        for bind in postBindEnterprise.objects.filter(postCode=post['postCode'], isDelete=False).values():
-            for enterprise in enterpriseManage.objects.filter(enterpriseCode=bind['enterpriseCode'], isDelete=False).values():
-                post.update({'toEnterprise': enterprise['enterpriseName']})
+        for enterprise in enterpriseManage.objects.filter(enterpriseCode=post['enterpriseCode'],
+                                                          isDelete=False).values():
+            post.update({'toEnterprise': enterprise['enterpriseName']})
         myData.append(post)
     myData = listSplit(myData, pageSize, pageNum)
     # 岗位属性筛选
     if queryType in ['enterpriseName'] and keyWord != '':
-        myData = [i for i in myData if i['toEnterprise' if queryType == 'enterpriseName' else queryType].lower().find(keyWord.lower()) != -1]
+        myData = [i for i in myData if
+                  i['toEnterprise' if queryType == 'enterpriseName' else queryType].lower().find(keyWord.lower()) != -1]
         myData = listSplit(myData, pageSize, pageNum)
 
     return JsonResponse({
@@ -230,43 +236,14 @@ def getPostDataCascaderOptions(requestData):
     :param requestData:
     :return:
     """
-    # 合成企业数据
-    enterpriseData = []  # 临时存放企业数据
-    for i in enterpriseManage.objects.filter(isDelete=False).values():
-        enterpriseCode = i['enterpriseCode']
-        enterpriseName = i['enterpriseName']
-        enterpriseData.append({'value': str(enterpriseCode), 'label': enterpriseName, 'disabled': True})
+    enterpriseContainer = []
+    for enterprise in enterpriseManage.objects.filter(isDelete=False).values():
+        zz = {'value': enterprise['enterpriseCode'], 'label': enterprise['enterpriseName'], 'disabled': True,
+              'children': []}
+        postList = []
+        for post in enterprisePost.objects.filter(enterpriseCode=enterprise['enterpriseCode'], isDelete=False).values():
+            postList.append({'value': post['postCode'], 'label': post['postName']})
+        zz.update({'disabled': False, 'children': postList})
+        enterpriseContainer.append(zz)
 
-    # 提取绑定关系数据
-    bindData = []
-    for i in list(postBindEnterprise.objects.filter(isDelete=False).values()):
-        for ii in list(enterprisePost.objects.filter(isDelete=False).values()):
-            if str(i['postCode']) == str(ii['postCode']):
-                postCode = ii['postCode']
-                postName = ii['postName']
-                enterpriseCode = i['enterpriseCode']
-                bindData.append(
-                    {'value': str(postCode), 'label': postName, 'enterpriseCode': str(enterpriseCode)})
-
-    # # 合成岗位数据
-    postData = []
-    for i in enterpriseData:
-        childrenData = []
-        for ii in bindData:
-            postCode = ii['value']
-            postName = ii['label']
-            if i['value'] == ii['enterpriseCode']:
-                childrenData.append({'value': str(postCode), 'label': postName})
-        postData.append({'enterpriseCode': i['value'], 'children': childrenData})
-
-    # 合成最终数据
-    enterpriseContainer = []  # 企业容器包含岗位子容器 value:企业编号 label:企业名称
-    for i in enterpriseData:
-        for ii in bindData:
-            if i['value'] == ii['enterpriseCode']:
-                i['disabled'] = False
-                for iii in postData:
-                    if iii['enterpriseCode'] == ii['enterpriseCode']:
-                        i.update({'children': iii['children']})
-        enterpriseContainer.append(i)
     return JsonResponse({'ret': 0, 'data': enterpriseContainer})
