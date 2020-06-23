@@ -235,9 +235,6 @@ def inputStudentData():
                     updateTeacherName=i['updateTeacherName'], postCode=postCode, enterpriseCode=enterpriseCode,
                     postDuty=i['postDuty'], professionCode=professionCode, classesCode=classesCode,
                     remarks=i['remarks'])
-
-
-
     else:
         return JsonResponse({'ret': 1, 'data': '此文件不合法，请按照特定的表格格式上传!'})
 
