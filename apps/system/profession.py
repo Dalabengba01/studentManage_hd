@@ -47,7 +47,7 @@ def deleteProfession(requestData):
     professionCode = requestData['professionCode']
     for i in list(classesManage.objects.filter(professionCode=professionCode, isDelete=False).values()):
         classesManage.objects.filter(classesCode=i).update(isDelete=True)
-    if professionManage.objects.filter(professionCode=professionCode).update(isDelete=True) and \
+    if professionManage.objects.filter(professionCode=professionCode).update(isDelete=True) or \
             classesManage.objects.filter(professionCode=professionCode).update(isDelete=True):
         studentManage.objects.filter(professionCode=professionCode).update(professionCode='0', classesCode='0')
 
