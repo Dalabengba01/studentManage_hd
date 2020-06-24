@@ -59,7 +59,7 @@ def getexportStudentData(request):
             if studentBindData['postCode'] != '0':
                 for postData in list(
                         enterprisePost.objects.filter(isDelete=False, postCode=studentBindData['postCode']).values()):
-                    i.update({'postDuty': postData['postDuty'], 'postName': postData['postName'], 'postAddress': postData['postAddress']})
+                    i.update({'postDuty': studentBindData['postDuty'], 'postName': postData['postName'], 'postAddress': postData['postAddress']})
             else:
                 i.update({'postDuty': '未绑定', 'postName': '未绑定', 'postAddress': '未绑定'})
 
