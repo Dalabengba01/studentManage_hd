@@ -45,10 +45,9 @@ def deleteProfession(requestData):
     :return:
     """
     professionCode = requestData['professionCode']
-    if professionManage.objects.filter(professionCode=professionCode).update(isDelete=True) or \
-            classesManage.objects.filter(professionCode=professionCode).update(isDelete=True):
+    if professionManage.objects.filter(professionCode=professionCode).update(isDelete=True):
+        classesManage.objects.filter(professionCode=professionCode).update(isDelete=True)
         studentManage.objects.filter(professionCode=professionCode).update(professionCode='0', classesCode='0')
-
         return JsonResponse({'ret': 0, 'data': '删除专业成功！'})
     else:
         return JsonResponse({'ret': 1, 'data': '删除专业失败,请稍后重试！'})
