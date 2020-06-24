@@ -107,7 +107,6 @@ def userModifyTeacher(requestData):
 # 操作性质API接口字典
 apiName = {
     'userLogout': '用户退出',
-    'isSystemInit': '系统是否初始化',
     'systemInit': '系统初始化',
     'userLogin': '用户登陆',
     'userModifyAccount': '修改账号名称',
