@@ -46,8 +46,8 @@ def inputStudentData():
         classes_obj = classesManage.objects
         for i in professionDataList:
             # 判断此专业是否存在，不存在则创建，否则更新
-            if profession_obj.filter(professionName=i['professionName'], isDelete=False).count() > 0:
-                profession_obj.filter(professionName=i['professionName'], isDelete=False).update(
+            if profession_obj.filter(professionName=i['professionName']).count() > 0:
+                profession_obj.filter(professionName=i['professionName']).update(
                     professionName=i['professionName'])
             else:
                 profession_obj.create(professionName=i['professionName'],
@@ -203,11 +203,11 @@ def inputStudentData():
                 professionCode = '0' if i['toProfession'] == '未绑定' else \
                     list(profession_obj.filter(professionName=i['toProfession']).values_list('professionCode'))[0][0]
                 classesCode = '0' if i['toClasses'] == '未绑定' else \
-                    list(classes_obj.filter(classesName=i['toClasses']).values_list('classesCode'))[0][0]
+                    list(classes_obj.filter(professionCode=professionCode, classesName=i['toClasses']).values_list('classesCode'))[0][0]
                 enterpriseCode = '0' if i['enterpriseName'] == '未绑定' else \
                     list(enterprise_obj.filter(enterpriseName=i['enterpriseName']).values_list('enterpriseCode'))[0][0]
                 postCode = '0' if i['postName'] == '未绑定' else \
-                    list(post_obj.filter(postName=i['postName']).values_list('postCode'))[0][0]
+                    list(post_obj.filter(enterpriseCode=enterpriseCode, postName=i['postName']).values_list('postCode'))[0][0]
                 student_obj.filter(studentCode=str(i['studentCode']).split('.')[0]).update(
                     studentCode=str(i['studentCode']).split('.')[0], studentName=i['studentName'],
                     studentSex=i['studentSex'], studentNativePlace=i['studentNativePlace'],
@@ -221,11 +221,11 @@ def inputStudentData():
                 professionCode = '0' if i['toProfession'] == '未绑定' else \
                     list(profession_obj.filter(professionName=i['toProfession']).values_list('professionCode'))[0][0]
                 classesCode = '0' if i['toClasses'] == '未绑定' else \
-                    list(classes_obj.filter(classesName=i['toClasses']).values_list('classesCode'))[0][0]
+                    list(classes_obj.filter(professionCode=professionCode, classesName=i['toClasses']).values_list('classesCode'))[0][0]
                 enterpriseCode = '0' if i['enterpriseName'] == '未绑定' else \
                     list(enterprise_obj.filter(enterpriseName=i['enterpriseName']).values_list('enterpriseCode'))[0][0]
                 postCode = '0' if i['postName'] == '未绑定' else \
-                    list(post_obj.filter(postName=i['postName']).values_list('postCode'))[0][0]
+                    list(post_obj.filter(enterpriseCode=enterpriseCode, postName=i['postName']).values_list('postCode'))[0][0]
                 student_obj.create(
                     studentCode=str(i['studentCode']).split('.')[0], studentName=i['studentName'],
                     studentSex=i['studentSex'], studentNativePlace=i['studentNativePlace'],

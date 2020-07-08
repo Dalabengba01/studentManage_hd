@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.http import JsonResponse
 
 from .models import studentManage, professionManage, \
@@ -339,7 +340,9 @@ def getIndexData(requestData):
     :return:
     """
     postCount = enterprisePost.objects.filter(isDelete=False).values().count()
-    unemployedCount = studentManage.objects.exclude(employmentStatus='已安置', isDelete=False).values().count()
+    unemployedCount = studentManage.objects.filter(
+        Q(employmentStatus='参军') | Q(employmentStatus='拟升学') | Q(employmentStatus='待安置'),
+        isDelete=False).values().count()
     employmentCount = studentManage.objects.filter(employmentStatus='已安置', isDelete=False).values().count()
     studentSumCount = studentManage.objects.filter(isDelete=False).values().count()
     professionSumCount = professionManage.objects.filter(isDelete=False).values().count()
