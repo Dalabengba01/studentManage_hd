@@ -21,7 +21,8 @@ class teacherData(models.Model):
     user_pass = models.CharField('账户密码', max_length=21)
     teacher_name = models.CharField('教师名称', max_length=10)
     is_login = models.BooleanField('是否登录', default=False)
-    add_time = models.DateTimeField(auto_now_add=True, verbose_name="初始化时间")
+    is_super = models.BooleanField('超级管理员', default=False)
+    add_time = models.DateField(auto_now_add=True, verbose_name="初始化时间")
 
 
 class enterpriseManage(BaseModels):
