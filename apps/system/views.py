@@ -1,7 +1,8 @@
 import json
 from django.http import JsonResponse
 from .models import teacherData, systemLogs
-from . import profession, classes, student, enterprise, system, dataStatistics, exportStudentData, inputStudentData
+from . import profession, classes, student, enterprise, system, dataStatistics, exportStudentData, inputStudentData, \
+    teacher
 
 
 # 用户基础功能函数
@@ -33,9 +34,6 @@ def user(request):
 
     if useraction == 'isSystemInit':
         return system.isSystemInit(requestData)
-
-    if useraction == 'isLogin':
-        return system.isLogin(requestData)
 
     if useraction == 'userLogin':
         return system.userLogin(requestData)
@@ -91,6 +89,18 @@ def data(request):
 
                     # 使用日志收集
                     system.logs(requestData)
+
+                    if useraction == 'addTeacher':
+                        return teacher.addTeacher(requestData)
+
+                    if useraction == 'getTeacherData':
+                        return teacher.getTeacherData(requestData)
+
+                    if useraction == 'editTeacher':
+                        return teacher.editTeacher(requestData)
+
+                    if useraction == 'deleteTeacher':
+                        return teacher.deleteTeacher(requestData)
 
                     if useraction == 'addProfession':
                         return profession.addProfession(requestData)

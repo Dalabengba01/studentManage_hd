@@ -9,11 +9,11 @@ from .models import teacherData, systemLogs, editLocked, professionManage, class
     enterprisePost, studentManage, studentPostTrack
 
 
-# 系统初始化
+# 系统初始化(通过本方式创建的教师为超级管理员)
 def systemInit(requestData):
     if int(teacherData.objects.count()) <= 0:
         teacherData.objects.create(user_name=requestData['username'], user_pass=requestData['password'],
-                                   teacher_name=requestData['teachername'])
+                                   teacher_name=requestData['teachername'], is_super=True)
         # 使用日志收集
         logs(requestData)
         return JsonResponse({'ret': 0, 'data': '系统初始化成功！'})
@@ -41,7 +41,7 @@ def userLogin(requestData):
             teacherData.objects.filter(user_name=username).update(is_login=True)
             # 使用日志收集
             logs(requestData)
-            return JsonResponse({'ret': 0, 'data': '账号登录系统成功！'})
+            return JsonResponse({'ret': 0, 'is_super': userList['is_super'], 'data': '账号登录系统成功！'})
     except Exception:
         return JsonResponse({'ret': 1, 'data': '账号或密码错误！'})
 
