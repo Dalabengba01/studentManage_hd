@@ -215,12 +215,13 @@ def getPostData(requestData):
                                                           isDelete=False).values():
             post.update({'toEnterprise': enterprise['enterpriseName']})
         myData.append(post)
-    myData = listSplit(myData, pageSize, pageNum)
+
     # 岗位属性筛选
     if queryType in ['enterpriseName'] and keyWord != '':
-        myData = [i for i in myData if
-                  i['toEnterprise' if queryType == 'enterpriseName' else queryType].lower().find(keyWord.lower()) != -1]
-        myData = listSplit(myData, pageSize, pageNum)
+        myData = [i for i in myData if (i['toEnterprise'].lower().find(keyWord.lower()) != -1)]
+
+    # 数据分页
+    myData = listSplit(myData, pageSize, pageNum)
 
     return JsonResponse({
         'ret': 0,
