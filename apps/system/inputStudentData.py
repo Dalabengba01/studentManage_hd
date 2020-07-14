@@ -106,7 +106,9 @@ def inputStudentData():
                     enterpriseAddress=i['enterpriseAddress'], skyEyeScore=i['skyEyeScore'], remarks=i['remarks'])
 
             # 创建岗位
-            if post_obj.filter(postName=i['postName'],
+            enterpriseCode = \
+                list(enterprise_obj.filter(enterpriseName=i['enterpriseName']).values_list('enterpriseCode'))[0][0]
+            if post_obj.filter(postName=i['postName'], enterpriseCode=enterpriseCode,
                                isDelete=False).count() > 0:
                 post_obj.filter(postName=i['postName'],
                                 isDelete=False).update(
@@ -114,8 +116,6 @@ def inputStudentData():
                     postAddress=i['postAddress'],
                     salaryTreatment=i['salaryTreatment'], isDelete=False)
             else:
-                enterpriseCode = \
-                    list(enterprise_obj.filter(enterpriseName=i['enterpriseName']).values_list('enterpriseCode'))[0][0]
                 if i['postName'] != '' or i['salaryTreatment'] != '' or i['postAddress'] != '':
                     post_obj.create(
                         postCode=getIndex(enterprisePost, 'postCode'),
@@ -190,7 +190,6 @@ def inputStudentData():
                     list(classes_obj.filter(professionCode=professionCode, classesName=i['toClasses']).values_list('classesCode'))[0][0]
                 enterpriseCode = '0' if i['enterpriseName'] == '未绑定' else \
                     list(enterprise_obj.filter(enterpriseName=i['enterpriseName']).values_list('enterpriseCode'))[0][0]
-                print(enterpriseCode, i['postName'])
                 postCode = '0' if i['postName'] == '未绑定' else \
                     list(post_obj.filter(enterpriseCode=enterpriseCode, postName=i['postName']).values_list('postCode'))[0][0]
                 student_obj.create(
