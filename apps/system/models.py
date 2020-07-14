@@ -97,11 +97,11 @@ class studentManage(BaseModels):
     studentName = models.CharField('学生名称', max_length=30)
     studentSex = models.CharField('学生性别', max_length=10)
     studentNativePlace = models.CharField('学生籍贯', max_length=30)
-    studentPhone = models.CharField('学生电话', max_length=11)
+    studentPhone = models.CharField('学生电话', max_length=30)
     employmentStatus = models.CharField('就业状态', max_length=21)
     studentSalary = models.IntegerField('实习薪资')
     teacherName = models.CharField('直属主管', max_length=30)
-    teacherPhone = models.CharField('主管电话', max_length=11)
+    teacherPhone = models.CharField('主管电话', max_length=30)
     studentStatus = models.CharField('学生状态', max_length=10)
     updateTeacherName = models.CharField('更新教师', max_length=30)
     # 学生绑定企业岗位
