@@ -262,8 +262,8 @@ def systemDataRecovery(requestData):
         return JsonResponse({'ret': 0, 'data': '数据恢复失败，请稍后重试！'})
 
 
-def deleteSystemLogsData(requestData):
-    if systemLogs.objects.filter(logCode=requestData['logCode']).delete():
-        return JsonResponse({'ret': 0, 'data': '删除操作日志成功！'})
-    else:
-        return JsonResponse({'ret': 1, 'data': '删除操作日志失败，请稍后重试！'})
+# def deleteSystemLogsData(requestData):
+#     if systemLogs.objects.filter(logCode=requestData['logCode']).delete():
+#         return JsonResponse({'ret': 0, 'data': '删除操作日志成功！'})
+#     else:
+#         return JsonResponse({'ret': 1, 'data': '删除操作日志失败，请稍后重试！'})
