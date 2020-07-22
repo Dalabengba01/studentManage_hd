@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django.http import JsonResponse
 
+from utils.tools import listSplit
 from .models import studentManage, professionManage, \
     classesManage, enterprisePost
 
@@ -364,6 +365,10 @@ def getWorkDirection(requestData):
     :param requestData:
     :return:
     """
+    query = requestData['query']
+    pageNum = query['pageNum']  # 当前页数
+    pageSize = query['pageSize']  # 一页多少数据
+
     studentList1 = []  # 组装包含绑定专业及班级的关系
     studentBaseData = studentManage.objects.filter(employmentStatus='已安置', isDelete=False).values()  # 获取学生基本数据并绑定专业及班级
     for i in studentBaseData:
@@ -426,7 +431,7 @@ def getWorkDirection(requestData):
                         student['studentSex'] == '男生' and classesLevel == student['classesLevel']:
                     postStudentCount = postStudentCount + 1
             postStudentCountBoyData.append(postStudentCount)
-        postBoyCountAndClassesLevel.update({classesLevel: postStudentCountBoyData})
+        postBoyCountAndClassesLevel.update({classesLevel: listSplit(postStudentCountBoyData, pageSize, pageNum)['currentData']})
 
     postGirlCountAndClassesLevel = {}  # 女生最终数据
     for classesLevel1 in yearData:  # 统计这一年的这些工作女孩有多少
@@ -438,8 +443,12 @@ def getWorkDirection(requestData):
                     'studentSex'] == '女生' and classesLevel1 == student1['classesLevel']:
                     postStudentCount1 = postStudentCount1 + 1
             postStudentCountGirlData.append(postStudentCount1)
-        postGirlCountAndClassesLevel.update({classesLevel1: postStudentCountGirlData})
+        postGirlCountAndClassesLevel.update({classesLevel1: listSplit(postStudentCountGirlData, pageSize, pageNum)['currentData']})
 
-    return JsonResponse({'ret': 0, 'yearData': yearData, 'studentPost': studentPost,
+    # 对数据数量进行分页，优化前端数据显示效果
+    studentPost = listSplit(studentPost, pageSize, pageNum)
+
+    return JsonResponse({'ret': 0, 'pagination': {'total': studentPost['dataSum'], 'pageSum': studentPost['pageSum']},
+                         'yearData': yearData, 'studentPost': studentPost['currentData'],
                          'postBoyCountAndClassesLevel': postBoyCountAndClassesLevel,
                          'postGirlCountAndClassesLevel': postGirlCountAndClassesLevel})
