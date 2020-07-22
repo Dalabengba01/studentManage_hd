@@ -70,12 +70,14 @@ def getEnterpriseData(requestData):
     keyWord = requestData['keyWord']  # 查询的关键词
     pageNum = requestData['pageNum']  # 当前页数
     pageSize = requestData['pageSize']  # 一页多少数据
+    searchType = requestData['searchType']
 
-    if keyWord == '':
-        enterpriseData = list(enterpriseManage.objects.filter(isDelete=False).values())
+    if keyWord == '' and searchType == '全部':
+        enterpriseData = list(enterpriseManage.objects.filter(enterpriseName__contains=keyWord, isDelete=False).values())
+    elif keyWord == '' and searchType != '':
+        enterpriseData = list(enterpriseManage.objects.filter(isDelete=False, goodGrade=searchType).values())
     else:
-        enterpriseData = list(
-            enterpriseManage.objects.filter(enterpriseName__contains=keyWord, isDelete=False).values())
+        enterpriseData = list(enterpriseManage.objects.filter(enterpriseName__contains=keyWord, isDelete=False).values())
 
     # 更新该企业有多少岗位
     enterpriseList = []
@@ -96,25 +98,25 @@ def getEnterpriseData(requestData):
     })
 
 
-def deleteEnterprise(requestData):
-    """
-    删除企业操作
-    :param requestData:
-    :return:
-    """
-    enterpriseCode = str(requestData['enterpriseCode'])
-    # 获取本企业所有岗位
-    postCode = [i['postCode'] for i in list(enterprisePost.objects.filter(enterpriseCode=enterpriseCode).values())
-                if str(i['enterpriseCode']) == enterpriseCode]
-    try:
-        enterpriseManage.objects.filter(enterpriseCode=enterpriseCode).update(isDelete=True)
-        for i in postCode:
-            enterprisePost.objects.filter(postCode=i).update(isDelete=True)
-            studentManage.objects.filter(postCode=i).update(postCode='0', enterpriseCode='0', employmentStatus='待安置',
-                                                            studentSalary=0)
-        return JsonResponse({'ret': 0, 'data': '删除企业成功！'})
-    except Exception:
-        return JsonResponse({'ret': 0, 'data': '删除企业失败，请稍后重试！'})
+# def deleteEnterprise(requestData):
+#     """
+#     删除企业操作
+#     :param requestData:
+#     :return:
+#     """
+#     enterpriseCode = str(requestData['enterpriseCode'])
+#     # 获取本企业所有岗位
+#     postCode = [i['postCode'] for i in list(enterprisePost.objects.filter(enterpriseCode=enterpriseCode).values())
+#                 if str(i['enterpriseCode']) == enterpriseCode]
+#     try:
+#         enterpriseManage.objects.filter(enterpriseCode=enterpriseCode).update(isDelete=True)
+#         for i in postCode:
+#             enterprisePost.objects.filter(postCode=i).update(isDelete=True)
+#             studentManage.objects.filter(postCode=i).update(postCode='0', enterpriseCode='0', employmentStatus='待安置',
+#                                                             studentSalary=0)
+#         return JsonResponse({'ret': 0, 'data': '删除企业成功！'})
+#     except Exception:
+#         return JsonResponse({'ret': 0, 'data': '删除企业失败，请稍后重试！'})
 
 
 def getEnterpriseDataCascaderOptions(requestData):
