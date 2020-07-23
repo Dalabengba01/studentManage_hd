@@ -230,7 +230,7 @@ def getStudentData(requestData):
     s_obj = studentManage.objects
     c_obj = classesManage.objects
     # 学生就业状态筛选
-    if queryType == 'noSearch' and keyWord == '' and searchType in ['参军', '待安置', '已安置', '拟升学']:
+    if queryType == 'noSearch' and keyWord == '' and searchType in ['参军', '待安置', '已安置', '拟升学', '专升本']:
         subData0 = list(s_obj.filter(employmentStatus=searchType, isDelete=False).values())
     else:
         subData0 = list(s_obj.filter(isDelete=False).values())
