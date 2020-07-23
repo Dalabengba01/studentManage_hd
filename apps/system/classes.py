@@ -118,7 +118,7 @@ def getProfessionAndClassesLevelDataCascaderOptions(requestData):
                 kk.append(zz)
         professionList.update({'disabled': False, 'children': kk})
         data.append(professionList)
-    print(data)
+
     return JsonResponse({'ret': 0, 'data': data})
 
 
