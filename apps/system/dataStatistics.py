@@ -157,7 +157,7 @@ def getUnemployedRateData(requestData):
 
     data = []  # 返回给客户端的数据
     peopleCount = len(studentList)  # 总人数
-    for i in ['参军', '待安置', '已安置', '拟升学']:
+    for i in ['参军', '待安置', '已安置', '拟升学', '专升本']:
         value = 0  # 当前原因总共出现多少次
         for ii in studentList:
             if i == ii['employmentStatus']:
